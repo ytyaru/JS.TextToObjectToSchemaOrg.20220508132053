@@ -4,6 +4,12 @@
 
 　プレーンテキストからデータ構造のオブジェクトや配列にして、それをGoogle用schema.orgに変換する。
 
+* [TextToObject][]
+* [Html.Template.Generator][]
+
+[TextToObject]:https://ytyaru.github.io/JS.TextToObject.20220505113141
+[Html.Template.Generator]:Html.Template.Generator.20220423144737
+
 # デモ
 
 * [デモ](https://ytyaru.github.io/JS.TextToObjectToSchemaOrg.20220508132053/)

@@ -4,6 +4,12 @@
 
 Convert plain text to data structure objects and arrays and convert them to schema.org for Google.
 
+* [TextToObject][]
+* [Html.Template.Generator][]
+
+[TextToObject]:https://ytyaru.github.io/JS.TextToObject.20220505113141
+[Html.Template.Generator]:Html.Template.Generator.20220423144737
+
 # DEMO
 
 * [DEMO](https://ytyaru.github.io/JS.TextToObjectToSchemaOrg.20220508132053/)
