@@ -15,18 +15,6 @@ class TxtySchemaOrgPerson extends TxtySchemaOrgGenerator {
         if (url) { result.url = url; }
         return result
     }
-    /*
-    generateFromObj(obj) { return {
-        ...this.generateTypeObj('Person'),
-        'name': obj.name,
-        'url': obj.url
-    }}
-    generateFromObj(obj) { return {
-        '@type': 'Person',
-        'name': obj.name,
-        'url': obj.url
-    }}
-    */
 }
 class TxtySchemaOrgArticle extends TxtySchemaOrgGenerator {
     generate(txt, indent=null) {
