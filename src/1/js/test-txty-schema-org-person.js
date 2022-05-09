@@ -12,7 +12,7 @@ class TestTxtySchemaOrgPerson {
     #testNormal() {
         const name = '著者名'
         const url = 'https://example.com/author.html'
-        const actual = new TxtySchemaOrgPerson().generate(name, url) 
+        const actual = new TxtySchemaOrgPerson().parse(name, url) 
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
@@ -21,7 +21,7 @@ class TestTxtySchemaOrgPerson {
     }
     #testWithoutUrl() {
         const name = '著者名'
-        const actual = new TxtySchemaOrgPerson().generate(name) 
+        const actual = new TxtySchemaOrgPerson().parse(name) 
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
@@ -38,7 +38,7 @@ class TestTxtySchemaOrgPerson {
     #testMinimum() {
         const txt = `著者名`
         const item = Txty.store(txt)[0]
-        const actual = new TxtySchemaOrgPerson().generateFromItem(item)
+        const actual = new TxtySchemaOrgPerson().parseFromItem(item)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
@@ -52,7 +52,7 @@ class TestTxtySchemaOrgPerson {
         const url = 'https://example.com/author.html'
         const txt = `${name}    ${url}`
         const item = Txty.store(txt)[0]
-        const actual = new TxtySchemaOrgPerson().generateFromItem(item)
+        const actual = new TxtySchemaOrgPerson().parseFromItem(item)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
@@ -68,7 +68,7 @@ class TestTxtySchemaOrgPerson {
         const sameAs = ['https://twitter.com/author', 'https://facebook.com/author']
         const txt = `${name}    ${url}    ${sameAs[0]}    ${sameAs[1]}`
         const item = Txty.store(txt)[0]
-        const actual = new TxtySchemaOrgPerson().generateFromItem(item)
+        const actual = new TxtySchemaOrgPerson().parseFromItem(item)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
