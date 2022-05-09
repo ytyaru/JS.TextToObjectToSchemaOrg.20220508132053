@@ -7,10 +7,12 @@ dateModified    datePublished
 著者名    著者URL    sameAsURL    ...
 ```
 
-　必須要素なし。すべて推奨項目。
-
+* 必須要素なし。すべて推奨項目。でも事実上headingは必須
+    * 1行目は必須
+    * 2行目以降は任意
+    * 2行目があるなら日付か著者名のいずれかである
 * `Article`、`NewsArticle`、`BlogPosting`のいずれか（`TechArticle`が使えないのが残念）
-
+    * `Article`固定にする（どうせ幅広い選択肢がないなら大元の型である）
 
 json-ld
 ```html

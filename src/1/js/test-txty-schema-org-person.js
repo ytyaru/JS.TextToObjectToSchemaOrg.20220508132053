@@ -29,23 +29,16 @@ class TestTxtySchemaOrgPerson {
         console.log(JSON.stringify(actual))
     }
     #testBlank() {
-        const txt = ``
-        const txtyObj = Txty.lines(txt)[0][0]
-        console.assert('undefined' === typeof txtyObj)
-        console.log(txtyObj, Txty.lines(txt))
-        const actual = new TxtySchemaOrgPerson().generateFromTxty(txtyObj)
-        console.log(actual)
-        console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(!actual.hasOwnProperty('url'))
-        console.assert(!actual.hasOwnProperty('sameAs'))
-        console.assert('著者名' === actual.name)
-        console.log(JSON.stringify(actual))
+        try { const store = Txty.store(''); }
+        catch (e) {
+            if (!(e instanceof TxtyStoreError)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
+            if (e.message !== `引数linesは空白文字以外が1字以上ある文字列の要素が1つ以上必要です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
+        }
     }
     #testMinimum() {
         const txt = `著者名`
-        const txtyObj = Txty.lines(txt)[0][0]
-        const actual = new TxtySchemaOrgPerson().generateFromTxty(txtyObj)
+        const item = Txty.store(txt)[0]
+        const actual = new TxtySchemaOrgPerson().generateFromItem(item)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
@@ -58,8 +51,8 @@ class TestTxtySchemaOrgPerson {
         const name = '著者名'
         const url = 'https://example.com/author.html'
         const txt = `${name}    ${url}`
-        const txtyObj = Txty.lines(txt)[0][0]
-        const actual = new TxtySchemaOrgPerson().generateFromTxty(txtyObj)
+        const item = Txty.store(txt)[0]
+        const actual = new TxtySchemaOrgPerson().generateFromItem(item)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
@@ -74,8 +67,8 @@ class TestTxtySchemaOrgPerson {
         const url = 'https://example.com/author.html'
         const sameAs = ['https://twitter.com/author', 'https://facebook.com/author']
         const txt = `${name}    ${url}    ${sameAs[0]}    ${sameAs[1]}`
-        const txtyObj = Txty.lines(txt)[0][0]
-        const actual = new TxtySchemaOrgPerson().generateFromTxty(txtyObj)
+        const item = Txty.store(txt)[0]
+        const actual = new TxtySchemaOrgPerson().generateFromItem(item)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('name'))
