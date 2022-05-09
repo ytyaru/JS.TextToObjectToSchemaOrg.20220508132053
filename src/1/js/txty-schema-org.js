@@ -1,5 +1,6 @@
 class TxtySchemaOrgPersonError extends ExtensibleCustomError {}
 class TxtySchemaOrgArticleError extends ExtensibleCustomError {}
+class TxtySchemaOrgQuestionError extends ExtensibleCustomError {}
 class TxtySchemaOrg {
     static Article(txt, indent=null) { return new TxtySchemaOrgArticle().parse(txt, indent) ; }
 }
@@ -29,7 +30,7 @@ class TxtySchemaOrgPerson extends TxtySchemaOrgParser {
 }
 class TxtySchemaOrgArticle extends TxtySchemaOrgParser {
     parse(txt, indent=null) {
-        const store = Txty.store(txt)
+        const store = Txty.store(txt, indent=null)
         let result = this.generateContextTypeObj('Article'); // Article, NewsArticle, BlogPosting
         result.headline = store[0].name
         if (0 < store[0].options.length) { result.image = store[0].options; } // 画像URL配列（16x9,4x3,1x1）
@@ -62,7 +63,7 @@ class TxtySchemaOrgArticle extends TxtySchemaOrgParser {
 }
 class TxtySchemaOrgBreadcrumbList extends TxtySchemaOrgParser {
     parse(txt, indent=null) {
-        const store = Txty.store(txt)
+        const store = Txty.store(txt, indent)
         const parser = new TxtySchemaOrgListItem()
         const result = this.generateContextTypeObj('BreadcrumbList')
         result.itemListElement = store.map((item, i)=>parser.parseFromItem(item, i+1))
@@ -76,5 +77,25 @@ class TxtySchemaOrgListItem extends TxtySchemaOrgParser {
         result.item = (0 < item.options.length) ? item.options[0] : ''
         if (position) { result.position = position }
         return result
+    }
+}
+class TxtySchemaOrgFaq extends TxtySchemaOrgParser {
+    parse(txt, indent=null) {
+        return this.parseFromStores(Txty.stores(txt, indent=null))
+    }
+    parseFromStores(stores) {
+        const result = this.generateContextTypeObj('FAQPage')
+        const parser = new TxtySchemaOrgQuestion()
+        result.mainEntity = stores.map(store=>parser.parseFromStore(store))
+        return result
+    }
+}
+class TxtySchemaOrgQuestion extends TxtySchemaOrgParser {
+    parseFromStore(store) {
+        if (2 !== store.length) { throw new TxtySchemaOrgQuestionError(`引数storeは2つの要素をもった配列であるべきです。1つ目が質問、2つ目が答えであることを期待します。`); }
+        const question = this.generateTypeObj('Question')
+        question.name = store[0].name 
+        question.acceptedAnswer = this.generateTypeObj('Answer')
+        question.acceptedAnswer.text = store[1].name
     }
 }

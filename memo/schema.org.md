@@ -7,8 +7,8 @@
 
 ## 対象
 
-* Article
-* BreadcrumbList
+* Article（Person）
+* BreadcrumbList（ListItem）
 * FAQPage
 * HowTo, HowToSupply, HowToTool, HowToSection, HowToStep, HowToDirection, HowToTip
 * Dataset
