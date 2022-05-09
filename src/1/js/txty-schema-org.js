@@ -17,7 +17,6 @@ class TxtySchemaOrgPerson extends TxtySchemaOrgParser {
     }
     parseFromItem(item) { // store:Txty.store()の返値
         const result = this.generateTypeObj('Person')
-        console.log(item)
         result.name = item.name
         if (0 < item.options.length) {
             result.url = item.options[0];
@@ -31,7 +30,6 @@ class TxtySchemaOrgPerson extends TxtySchemaOrgParser {
 class TxtySchemaOrgArticle extends TxtySchemaOrgParser {
     parse(txt, indent=null) {
         const store = Txty.store(txt)
-        console.log(store)
         let result = this.generateContextTypeObj('Article'); // Article, NewsArticle, BlogPosting
         result.headline = store[0].name
         if (0 < store[0].options.length) { result.image = store[0].options; } // 画像URL配列（16x9,4x3,1x1）
@@ -60,5 +58,23 @@ class TxtySchemaOrgArticle extends TxtySchemaOrgParser {
             }
         }
         return obj
+    }
+}
+class TxtySchemaOrgBreadcrumbList extends TxtySchemaOrgParser {
+    parse(txt, indent=null) {
+        const store = Txty.store(txt)
+        const parser = new TxtySchemaOrgListItem()
+        const result = this.generateContextTypeObj('BreadcrumbList')
+        result.itemListElement = store.map((item, i)=>parser.parseFromItem(item, i+1))
+        return result
+    }
+}
+class TxtySchemaOrgListItem extends TxtySchemaOrgParser {
+    parseFromItem(item, position=null) {
+        let result = this.generateTypeObj('ListItem')
+        result.name = item.name
+        result.item = (0 < item.options.length) ? item.options[0] : ''
+        if (position) { result.position = position }
+        return result
     }
 }

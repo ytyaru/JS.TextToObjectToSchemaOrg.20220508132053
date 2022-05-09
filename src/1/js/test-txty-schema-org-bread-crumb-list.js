@@ -1,7 +1,10 @@
 class UnitTestError extends ExtensibleCustomError {}
-class TestTxtySchemaOrgArticle {
+class TestTxtySchemaOrgBreadcrumbList {
     test() {
         this.#testBlank()
+        this.#testMinimum()
+        this.#test3()
+        /*
         this.#testHeadingOnly()
         this.#testHeadingImage()
         this.#testHeadingImage3()
@@ -10,42 +13,81 @@ class TestTxtySchemaOrgArticle {
         this.#testHeadingModifiedPublished()
         this.#testHeadingAuthor()
         this.#testFull()
+        */
     }
     #testBlank() {
-        try { /*Txty.store('');*/ new TxtySchemaOrgArticle().parse(''); }
+        try { /*Txty.store('');*/ new TxtySchemaOrgBreadcrumbList().parse(''); }
         catch (e) {
             if (!(e instanceof TxtyStoreError)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
             if (e.message !== `引数linesは空白文字以外が1字以上ある文字列の要素が1つ以上必要です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
         }
     }
-    #testHeadingOnly() {
-        const txt = `見出し`
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+    #testMinimum() {
+        const txt = `HOME`
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('@context'))
         console.assert(actual.hasOwnProperty('@type'))
+        console.assert(actual.hasOwnProperty('itemListElement'))
         console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
-
-        console.assert(actual.hasOwnProperty('headline'))
-        console.assert(!actual.hasOwnProperty('image'))
-        console.assert(!actual.hasOwnProperty('dateModified'))
-        console.assert(!actual.hasOwnProperty('datePublished'))
-        console.assert(!actual.hasOwnProperty('author'))
-        console.assert('見出し' === actual.headline)
+        console.assert('BreadcrumbList' === actual['@type'])
+        console.assert(Array.isArray(actual.itemListElement))
+        console.assert(1 === actual.itemListElement.length)
+        console.assert(actual.itemListElement[0].hasOwnProperty('name'))
+        console.assert(actual.itemListElement[0].hasOwnProperty('item'))
+        console.assert(actual.itemListElement[0].hasOwnProperty('position'))
+        console.assert('HOME' === actual.itemListElement[0].name)
+        console.assert('' === actual.itemListElement[0].item)
+        console.assert(1 === actual.itemListElement[0].position)
         console.log(JSON.stringify(actual))
     }
-    #testHeadingImage() {
-        const txt = `見出し    https://example.com/eye-catch-16x9.jpg`
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+    #test3() {
+        const txt = `
+🏠    https://example.com/
+プログラム    https://example.com/program
+JavaScript    https://example.com/program/javascript
+`
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('@context'))
         console.assert(actual.hasOwnProperty('@type'))
+        console.assert(actual.hasOwnProperty('itemListElement'))
         console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
+        console.assert('BreadcrumbList' === actual['@type'])
+        console.assert(Array.isArray(actual.itemListElement))
+        console.assert(3 === actual.itemListElement.length)
 
+        console.assert(actual.itemListElement[0].hasOwnProperty('name'))
+        console.assert(actual.itemListElement[0].hasOwnProperty('item'))
+        console.assert(actual.itemListElement[0].hasOwnProperty('position'))
+        console.assert('🏠' === actual.itemListElement[0].name)
+        console.assert('https://example.com/' === actual.itemListElement[0].item)
+        console.assert(1 === actual.itemListElement[0].position)
+
+        console.assert(actual.itemListElement[1].hasOwnProperty('name'))
+        console.assert(actual.itemListElement[1].hasOwnProperty('item'))
+        console.assert(actual.itemListElement[1].hasOwnProperty('position'))
+        console.assert('プログラム' === actual.itemListElement[1].name)
+        console.assert('https://example.com/program' === actual.itemListElement[1].item)
+        console.assert(2 === actual.itemListElement[1].position)
+
+        console.assert(actual.itemListElement[2].hasOwnProperty('name'))
+        console.assert(actual.itemListElement[2].hasOwnProperty('item'))
+        console.assert(actual.itemListElement[2].hasOwnProperty('position'))
+        console.assert('JavaScript' === actual.itemListElement[2].name)
+        console.assert('https://example.com/program/javascript' === actual.itemListElement[2].item)
+        console.assert(3 === actual.itemListElement[2].position)
+        console.log(JSON.stringify(actual))
+    }
+
+    /*
+    #testHeadingImage() {
+        const txt = `見出し    https://example.com/eye-catch-16x9.jpg`
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
+        console.log(actual)
+        console.assert('object' === typeof actual)
         console.assert(actual.hasOwnProperty('headline'))
         console.assert(actual.hasOwnProperty('image'))
         console.assert(!actual.hasOwnProperty('dateModified'))
@@ -60,14 +102,9 @@ class TestTxtySchemaOrgArticle {
     }
     #testHeadingImage3() {
         const txt = `見出し    https://example.com/eye-catch-16x9.jpg    https://example.com/eye-catch-4x3.jpg    https://example.com/eye-catch-1x1.jpg`
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
-
         console.assert(actual.hasOwnProperty('headline'))
         console.assert(actual.hasOwnProperty('image'))
         console.assert(!actual.hasOwnProperty('dateModified'))
@@ -84,14 +121,9 @@ class TestTxtySchemaOrgArticle {
     }
     #testHeadingPublished() {
         const txt = `見出し\n2022-01-01T00:00:00+09:00`
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
-
         console.assert(actual.hasOwnProperty('headline'))
         console.assert(!actual.hasOwnProperty('image'))
         console.assert(!actual.hasOwnProperty('dateModified'))
@@ -105,14 +137,9 @@ class TestTxtySchemaOrgArticle {
     #testHeadingPublishedModified() {
         const txt = `見出し
 2022-01-01T00:00:00+09:00    2022-02-02T00:00:00+09:00`
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
-
         console.assert(actual.hasOwnProperty('headline'))
         console.assert(!actual.hasOwnProperty('image'))
         console.assert(actual.hasOwnProperty('dateModified'))
@@ -127,14 +154,9 @@ class TestTxtySchemaOrgArticle {
     #testHeadingModifiedPublished() {
         const txt = `見出し
 2022-02-02T00:00:00+09:00    2022-01-01T00:00:00+09:00`
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
-
         console.assert(actual.hasOwnProperty('headline'))
         console.assert(!actual.hasOwnProperty('image'))
         console.assert(actual.hasOwnProperty('dateModified'))
@@ -149,14 +171,9 @@ class TestTxtySchemaOrgArticle {
     #testHeadingAuthor() {
         const txt = `見出し
 著者名（ISO8061形式でない文字列）`
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
-
         console.assert(actual.hasOwnProperty('headline'))
         console.assert(!actual.hasOwnProperty('image'))
         console.assert(!actual.hasOwnProperty('dateModified'))
@@ -176,14 +193,9 @@ class TestTxtySchemaOrgArticle {
 2022-01-01T00:00:00+09:00    2022-02-02T00:00:00+09:00
 著者名    https://example.com/author.html    https://twitter.com/author    https://facebook.com/author
 `
-        const actual = new TxtySchemaOrgArticle().parse(txt)
+        const actual = new TxtySchemaOrgBreadcrumbList().parse(txt)
         console.log(actual)
         console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        console.assert('https://schema.org' === actual['@context'])
-        console.assert('Article' === actual['@type'])
-
         console.assert(actual.hasOwnProperty('headline'))
         console.assert(actual.hasOwnProperty('image'))
         console.assert(actual.hasOwnProperty('dateModified'))
@@ -212,4 +224,5 @@ class TestTxtySchemaOrgArticle {
         console.assert('https://facebook.com/author' === actual.author.sameAs[1])
         console.log(JSON.stringify(actual))
     }
+    */
 }

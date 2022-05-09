@@ -1,0 +1,21 @@
+# パンくずリスト
+
+bread-crumb-list.store
+```javascript
+🏠    https://example.com/
+プログラム    https://example.com/program
+JavaScript    https://example.com/program/javascript
+```
+main.js
+```
+const store = Txty.store(await fetch('bread-crumb-list.store'))
+const bread = TxtySchemaOrgBreadcrumbList.parse(store)
+console.assert(3 === bread.length)
+console.assert('🏠' === bread[0].name)
+console.assert('https://example.com/' === bread[0].options[0])
+console.assert('プログラム' === bread[1].name)
+console.assert('https://example.com/program' === bread[1].options[0])
+console.assert('JavaScript' === bread[2].name)
+console.assert('https://example.com/program/javascript' === bread[2].options[0])
+```
+
