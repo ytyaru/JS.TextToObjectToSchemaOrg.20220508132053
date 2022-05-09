@@ -97,5 +97,6 @@ class TxtySchemaOrgQuestion extends TxtySchemaOrgParser {
         question.name = store[0].name 
         question.acceptedAnswer = this.generateTypeObj('Answer')
         question.acceptedAnswer.text = store[1].name
+        return question
     }
 }

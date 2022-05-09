@@ -3,6 +3,7 @@ class TestTxtySchemaOrgFaq {
     test() {
         this.#testBlank()
         this.#testStore1Only()
+        this.#testStore2()
         /*
         this.#testHeadingOnly()
         this.#testHeadingImage()
@@ -28,6 +29,34 @@ class TestTxtySchemaOrgFaq {
             if (!(e instanceof TxtySchemaOrgQuestionError)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
             if (e.message !== `引数storeは2つの要素をもった配列であるべきです。1つ目が質問、2つ目が答えであることを期待します。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
         }
+    }
+    #testStore2() {
+        const txt = `
+質問文。
+回答文。`
+        const actual =  new TxtySchemaOrgFaq().parse(txt);
+        console.log(actual)
+        console.assert('object' === typeof actual)
+        console.assert(actual.hasOwnProperty('@context'))
+        console.assert(actual.hasOwnProperty('@type'))
+        console.assert('https://schema.org' === actual['@context'])
+        console.assert('FAQPage' === actual['@type'])
+
+        console.assert(actual.hasOwnProperty('mainEntity'))
+        console.assert(Array.isArray(actual.mainEntity))
+        console.assert(1 === actual.mainEntity.length)
+
+        console.assert(!actual.mainEntity[0].hasOwnProperty('@context'))
+        console.assert(actual.mainEntity[0].hasOwnProperty('@type'))
+        console.assert('Question' === actual.mainEntity[0]['@type'])
+        console.assert(actual.mainEntity[0].hasOwnProperty('name'))
+        console.assert('質問文。' === actual.mainEntity[0].name)
+
+        console.assert(actual.mainEntity[0].hasOwnProperty('acceptedAnswer'))
+        console.assert(actual.mainEntity[0].acceptedAnswer.hasOwnProperty('@type'))
+        console.assert(actual.mainEntity[0].acceptedAnswer.hasOwnProperty('text'))
+        console.assert('Answer' === actual.mainEntity[0].acceptedAnswer['@type'])
+        console.assert('回答文。' === actual.mainEntity[0].acceptedAnswer.text)
     }
     /*
     #testHeadingOnly() {
