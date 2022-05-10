@@ -1,6 +1,7 @@
 class TxtySchemaOrgPersonError extends ExtensibleCustomError {}
 class TxtySchemaOrgArticleError extends ExtensibleCustomError {}
 class TxtySchemaOrgQuestionError extends ExtensibleCustomError {}
+class TxtySchemaOrgMonetaryAmountError extends ExtensibleCustomError {}
 class TxtySchemaOrgImageObjectError extends ExtensibleCustomError {}
 class TxtySchemaOrg {
     static Article(txt, indent=null) { return new TxtySchemaOrgArticle().parse(txt, indent) ; }
@@ -100,6 +101,21 @@ class TxtySchemaOrgQuestion extends TxtySchemaOrgParser {
         question.acceptedAnswer.text = store[1].name
         return question
     }
+}
+class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
+    parse(value, currency='JPY') {
+        if (!value) { throw new TxtySchemaOrgMonetaryAmountError(`引数valueは必須です。`); }
+        return {...this.generateTypeObj('MonetaryAmount'), value:value, currency:currency}
+    }
+    //parse(value, currency='JPY') { return {...this.generateTypeObj('MonetaryAmount'), value:value, currency:currency}; }
+    /*
+    parse(value, currency='JPY') {
+        const obj = this.generateTypeObj('MonetaryAmount')
+        obj.value = value
+        obj.currency = currency
+        return obj
+    }
+    */
 }
 class TxtySchemaOrgImageObject extends TxtySchemaOrgParser {
     parseFromItem(item) {
