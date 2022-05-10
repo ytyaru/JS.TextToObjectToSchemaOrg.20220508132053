@@ -1,6 +1,7 @@
 class TxtySchemaOrgPersonError extends ExtensibleCustomError {}
 class TxtySchemaOrgArticleError extends ExtensibleCustomError {}
 class TxtySchemaOrgQuestionError extends ExtensibleCustomError {}
+class TxtySchemaOrgImageObjectError extends ExtensibleCustomError {}
 class TxtySchemaOrg {
     static Article(txt, indent=null) { return new TxtySchemaOrgArticle().parse(txt, indent) ; }
 }
@@ -98,5 +99,68 @@ class TxtySchemaOrgQuestion extends TxtySchemaOrgParser {
         question.acceptedAnswer = this.generateTypeObj('Answer')
         question.acceptedAnswer.text = store[1].name
         return question
+    }
+}
+class TxtySchemaOrgImageObject extends TxtySchemaOrgParser {
+    parseFromItem(item) {
+        const image = this.generateTypeObj('ImageObject')
+        image.url = item.name
+        image.contentUrl = item.name
+        if (item.options.length < 1) { return image; }
+        let size = this.#isSize(item.options[0])
+        switch (item.options.length) {
+            case 1:
+                if (size) { image.width = size[0]; image.height = size[1]; }
+                else { image.license = item.options[0]; }
+                break
+            case 2:
+                if (size) { image.width = size[0]; image.height = size[1]; image.license = item.options[1]; }
+                else {
+                    let size = this.#isSize(item.options[1])
+                    image.license = item.options[0]
+                    if (size) { image.width = size[0]; image.height = size[1]; }
+                    else { image.acquireLicensePage = item.options[1];  }
+                }
+                break
+            case 3:
+                if (size) { image.width = size[0]; image.height = size[1]; image.license = item.options[1]; image.acquireLicensePage = item.options[2]; }
+                else {
+                    image.license = item.options[0]
+                    image.acquireLicensePage = item.options[1]
+                    size = this.#isSize(item.options[2])
+                    if (!size) { throw new TxtySchemaOrgImageObjectError(`オプションが3つあり最初がサイズでないなら、最後はサイズであるべきです。サイズは640x480のように幅x高さの書式で指定してください。`); }
+                    image.width = size[0]
+                    image.height = size[1]
+                }
+                break
+            default: throw new TxtySchemaOrgImageObjectError(`オプション数は1〜3であるべきです。`)
+        }
+        return image
+    }
+    #isSize(str) { // {width}x{height}
+        const sizes = []
+        //const [w, h] = str.split('x')
+        const values = str.split('x')
+        if (2 !== values.length) { return false; }
+        for (const value of values) {
+            const size = parseInt(value)
+            if (isNaN(size)) { return false; }
+            sizes.push(size)
+        }
+        return sizes
+    }
+    parseFromStore(store) {
+        const image = this.generateTypeObj('ImageObject')
+        image.url = store[0].name
+        image.contentUrl = store[0].name
+        if (2 === store.length) {
+            if (isNaN(store[1].name)) { // 幅x高さ
+                if (1 !== store[1].options.length) { throw new TxtySchemaOrgImageObjectError(`幅と高さの2数値が必要です。インデントで区切って指定してください。`); }
+                if (isNaN(store[1].options[0])) { throw new TxtySchemaOrgImageObjectError(`幅と高さの2数値が必要です。インデントで区切って指定してください。`); }
+            } else { // license
+                image.license = store[1].name
+            }
+        }
+        return image
     }
 }
