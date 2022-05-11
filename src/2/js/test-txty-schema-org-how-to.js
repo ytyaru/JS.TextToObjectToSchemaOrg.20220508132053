@@ -1,46 +1,12 @@
 class UnitTestError extends ExtensibleCustomError {}
 class TestTxtySchemaOrgHowTo {
     test() {
-//        this.#testNormal()
-//        this.#testWithoutUrl()
-
+        this.#testText()
         this.#testBlank()
-        this.#testMinimum()
-        this.#testNameUrl()
-        this.#testNameUrlSameAs()
+        this.#testBlock1()
+        this.#testBlock5()
+        this.#testBlock2()
     }
-    /*
-    #testNormal() {
-        const name = '著者名'
-        const url = 'https://example.com/author.html'
-        const actual = new TxtySchemaOrgHowTo().parse(txt) 
-        console.log(actual)
-        console.assert('object' === typeof actual)
-        console.assert(actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        //console.assert('https://schema.org' === actual['@context'])
-        console.assert('HowTo' === actual['@type'])
-
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('url'))
-        console.log(JSON.stringify(actual))
-    }
-    #testWithoutUrl() {
-        const name = '著者名'
-        const actual = new TxtySchemaOrgHowTo().parse(name) 
-        console.log(actual)
-        console.assert('object' === typeof actual)
-        console.assert(!actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        //console.assert('https://schema.org' === actual['@context'])
-        console.assert('HowTo' === actual['@type'])
-
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(!actual.hasOwnProperty('url'))
-        console.log(JSON.stringify(actual))
-    }
-    */
-
     #testError(input, errorType, message) {
         try {
             const actual = new TxtySchemaOrgHowTo().parseFromComposite(input) 
@@ -51,79 +17,44 @@ class TestTxtySchemaOrgHowTo {
             if (!(e instanceof errorType)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
             if (e.message !== message) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
         }
-
+    }
+    #testText() {
+        this.#testError(``, TxtySchemaOrgHowToError, `引数compoは配列であるべきです。Txty.composite()の戻り値を期待します。`)
     }
     #testBlank() {
-        this.#testError(``, TxtySchemaOrgHowToError, `引数compoは配列であるべきです。Txty.composite()の戻り値を期待します。`)
-        /*
-        const actual = new TxtySchemaOrgHowTo().parse(name) 
-        try { const store = Txty.store(''); }
-        catch (e) {
-            if (!(e instanceof TxtyStoreError)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
-            if (e.message !== `引数linesは空白文字以外が1字以上ある文字列の要素が1つ以上必要です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
-        }
-        */
+        this.#testError(Txty.composite(``), TxtySchemaOrgHowToError, `引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`)
     }
-    #testMinimum() {
-        const txt = `著者名`
-        const item = Txty.store(txt)[0]
-        const actual = new TxtySchemaOrgHowTo().parseFromItem(item)
-        console.log(actual)
-        console.assert('object' === typeof actual)
-        console.assert(!actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        //console.assert('https://schema.org' === actual['@context'])
-        console.assert('HowTo' === actual['@type'])
-
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(!actual.hasOwnProperty('url'))
-        console.assert(!actual.hasOwnProperty('sameAs'))
-        console.assert('著者名' === actual.name)
-        console.log(JSON.stringify(actual))
+    #testBlock1() {
+        this.#testError(Txty.composite(`HowToの名前`), TxtySchemaOrgHowToError, `引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`)
     }
-    #testNameUrl() {
-        const name = '著者名'
-        const url = 'https://example.com/author.html'
-        const txt = `${name}    ${url}`
-        const item = Txty.store(txt)[0]
-        const actual = new TxtySchemaOrgHowTo().parseFromItem(item)
-        console.log(actual)
-        console.assert('object' === typeof actual)
-        console.assert(!actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        //console.assert('https://schema.org' === actual['@context'])
-        console.assert('HowTo' === actual['@type'])
+    #testBlock5() {
+        const txt = `
+HowToの名前
 
-        console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('url'))
-        console.assert(!actual.hasOwnProperty('sameAs'))
-        console.assert(name === actual.name)
-        console.assert(url === actual.url)
-        console.log(JSON.stringify(actual))
+素材
+
+道具
+
+手順1
+
+エラー
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`)
     }
-    #testNameUrlSameAs() {
-        const name = '著者名'
-        const url = 'https://example.com/author.html'
-        const sameAs = ['https://twitter.com/author', 'https://facebook.com/author']
-        const txt = `${name}    ${url}    ${sameAs[0]}    ${sameAs[1]}`
-        const item = Txty.store(txt)[0]
-        const actual = new TxtySchemaOrgHowTo().parseFromItem(item)
-        console.log(actual)
-        console.assert('object' === typeof actual)
-        console.assert(!actual.hasOwnProperty('@context'))
-        console.assert(actual.hasOwnProperty('@type'))
-        //console.assert('https://schema.org' === actual['@context'])
-        console.assert('HowTo' === actual['@type'])
+    #testBlock2() {
+        const txt = `
+HowToの名前
 
+手順1
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
         console.assert(actual.hasOwnProperty('name'))
-        console.assert(actual.hasOwnProperty('url'))
-        console.assert(actual.hasOwnProperty('sameAs'))
-        console.assert(name === actual.name)
-        console.assert(url === actual.url)
-        console.assert(Array.isArray(actual.sameAs))
-        console.assert(2 === actual.sameAs.length)
-        console.assert('https://twitter.com/author' === actual.sameAs[0])
-        console.assert('https://facebook.com/author' === actual.sameAs[1])
-        console.log(JSON.stringify(actual))
+        console.assert(actual.hasOwnProperty('step'))
+        
+        console.assert('HowToの名前' === actual.name)
+        console.assert(Array.isArray(actual.step))
+        console.assert(1 === actual.step.length)
+        console.assert('手順1' === actual.step[0].text)
     }
 }

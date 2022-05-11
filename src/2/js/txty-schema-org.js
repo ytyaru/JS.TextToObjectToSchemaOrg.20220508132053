@@ -184,12 +184,17 @@ class TxtySchemaOrgImageObject extends TxtySchemaOrgParser {
 
 class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     parseFromComposite(compo) {
+        console.log(compo)
         if (!Array.isArray(compo)) { throw new TxtySchemaOrgHowToError(`引数compoは配列であるべきです。Txty.composite()の戻り値を期待します。`); }
         let howto = this.generateContextTypeObj('HowTo')
         if (2 === compo.length) {
+            const steps = (Array.isArray(compo[1])) ? 
+                            this.#parseHowToStepsFromStore(compo[1]) : 
+                            this.#parseHowToStepsFromTree(compo[1]);
+            console.log(steps)
             return {...howto, 
                 ...this.#parseHowToFromStore(compo[0]), 
-                ...this.#parseHowToStepsFromTree(compo[1])}
+                ...steps}
         } else if (3 === compo.length) {
             return {...howto,
                 ...this.#parseHowToFromStore(compo[0]),
@@ -204,12 +209,14 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         } else { throw new TxtySchemaOrgHowToError(`引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`); }
     }
     #parseHowToFromStore(store) {
+        console.log(store)
         //if (store.length < 1)
         const obj = {}
         obj.name = store[0].name
         if (2 === store.length) {
 
         }
+        console.log(obj)
         return obj
     }
     #parseHowToSuppliesFromStore(store) {
@@ -220,9 +227,25 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         const obj = {tool: null}
         return obj
     }
-    #parseHowToStepsFromTree(tree) {
-        const obj = {step: null}
+    #parseHowToStepsFromStore(store) { // 1層
+        const obj = {step: []}
+        for (const item of store) {
+            const step = this.generateTypeObj('HowToStep')
+            step.text = item.name
+            // image, video
+            obj.step.push(step)
+        }
         return obj
+    }
+    #parseHowToStepsFromTree(tree) { // 2,3層
+        const obj = {step: []}
+        return obj
+    }
+    #parseHowToStepImage(options) {
+
+    }
+    #parseHowToStepVideo(options) {
+
     }
 }
 
