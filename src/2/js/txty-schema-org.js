@@ -3,6 +3,7 @@ class TxtySchemaOrgArticleError extends ExtensibleCustomError {}
 class TxtySchemaOrgQuestionError extends ExtensibleCustomError {}
 class TxtySchemaOrgMonetaryAmountError extends ExtensibleCustomError {}
 class TxtySchemaOrgImageObjectError extends ExtensibleCustomError {}
+class TxtySchemaOrgHowToError extends ExtensibleCustomError {}
 class TxtySchemaOrg {
     static Article(txt, indent=null) { return new TxtySchemaOrgArticle().parse(txt, indent) ; }
 }
@@ -180,3 +181,48 @@ class TxtySchemaOrgImageObject extends TxtySchemaOrgParser {
         return image
     }
 }
+
+class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
+    parseFromComposite(compo) {
+        if (!Array.isArray(compo)) { throw new TxtySchemaOrgHowToError(`引数compoは配列であるべきです。Txty.composite()の戻り値を期待します。`); }
+        let howto = this.generateContextTypeObj('HowTo')
+        if (2 === compo.length) {
+            return {...howto, 
+                ...this.#parseHowToFromStore(compo[0]), 
+                ...this.#parseHowToStepsFromTree(compo[1])}
+        } else if (3 === compo.length) {
+            return {...howto,
+                ...this.#parseHowToFromStore(compo[0]),
+                ...this.#parseHowToSuppliesFromStore(compo[1]),
+                ...this.#parseHowToStepsFromTree(compo[3])}
+        } else if (4 === compo.length) {
+            return {...howto,
+                ...this.#parseHowToFromStore(compo[0]),
+                ...this.#parseHowToSuppliesFromStore(compo[1]),
+                ...this.#parseHowToToolsFromStore(compo[2]),
+                ...this.#parseHowToStepsFromTree(compo[3])}
+        } else { throw new TxtySchemaOrgHowToError(`引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`); }
+    }
+    #parseHowToFromStore(store) {
+        //if (store.length < 1)
+        const obj = {}
+        obj.name = store[0].name
+        if (2 === store.length) {
+
+        }
+        return obj
+    }
+    #parseHowToSuppliesFromStore(store) {
+        const obj = {suppy: null}
+        return obj
+    }
+    #parseHowToToolsFromStore(store) {
+        const obj = {tool: null}
+        return obj
+    }
+    #parseHowToStepsFromTree(tree) {
+        const obj = {step: null}
+        return obj
+    }
+}
+
