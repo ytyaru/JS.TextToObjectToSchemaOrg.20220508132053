@@ -135,34 +135,14 @@ video.contentUrl    video.embedUrl（拡張子.mp4などがついていたらcon
 動画を詳しく（Clip）
 ```
 手順
-    手順1    https://image.png    https://video.mp4?start=10    10-25
+    手順1    https://image.png    https://video.mp4?start=10    10..25
 ```
 
 画像と動画を詳しく
 ```
 手順
-    手順1    https://image.png    640x480    https://license.html    https://acquireLicensePage.html    https://video.mp4?start=10    10-25
+    手順1    https://image.png    640x480    https://license.html    https://acquireLicensePage.html    https://video.mp4?start=10    10..25
 ```
-
-
-```
-手順
-    手順1    https://image.png    
-```
-
-
-```
-手順
-    手順1    https://image.png    
-```
-
-
-```
-手順
-    手順1    https://image.png    
-```
-
-
 
 　手順ツリー。`HowToStep`の箇所のみimageやvideoを持ちうる。
 
