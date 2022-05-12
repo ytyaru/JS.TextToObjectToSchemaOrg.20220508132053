@@ -186,28 +186,19 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     parseFromComposite(compo) {
         console.log(compo)
         if (!Array.isArray(compo)) { throw new TxtySchemaOrgHowToError(`引数compoは配列であるべきです。Txty.composite()の戻り値を期待します。`); }
-        let howto = this.generateContextTypeObj('HowTo')
-        if (2 === compo.length) {
-            const steps = (Array.isArray(compo[1])) ? 
-                            this.#parseHowToStepsFromStore(compo[1]) : 
-                            this.#parseHowToStepsFromTree(compo[1]);
-            console.log(steps)
-            return {...howto, 
-                ...this.#parseHowToFromStore(compo[0]), 
-                ...steps}
-        } else if (3 === compo.length) {
-            return {...howto,
-                ...this.#parseHowToFromStore(compo[0]),
-                ...this.#parseHowToSuppliesFromStore(compo[1]),
-                ...this.#parseHowToStepsFromTree(compo[3])}
-        } else if (4 === compo.length) {
-            return {...howto,
-                ...this.#parseHowToFromStore(compo[0]),
-                ...this.#parseHowToSuppliesFromStore(compo[1]),
-                ...this.#parseHowToToolsFromStore(compo[2]),
-                ...this.#parseHowToStepsFromTree(compo[3])}
-        } else { throw new TxtySchemaOrgHowToError(`引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`); }
+        if (compo.length < 2 || 4 < compo.length) { throw new TxtySchemaOrgHowToError(`引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`); }
+        return {...this.generateContextTypeObj('HowTo'), ...this.#parseHowToFromStore(compo[0]), ...this.#parseOptions(compo)}
     }
+    #parseOptions(compo) {
+        const options = {}
+        if (3 <= compo.length) { options.supply = this.#parseHowToSuppliesFromStore(compo[1]) }
+        if (4 <= compo.length) { options.tool = this.#parseHowToToolsFromStore(compo[2]) }
+        options.step = (Array.isArray(compo[compo.length-1])) ? 
+                        this.#parseHowToStepsFromStore(compo[compo.length-1]) : 
+                        this.#parseHowToStepsFromTree(compo[compo.length-1]);
+        return options
+    }
+    #parseHowToStepTextFromItem(item) { return {...super.generateTypeObj('HowToStep'), text: item.name}; }
     #parseHowToFromStore(store) {
         console.log(store)
         //if (store.length < 1)
@@ -220,32 +211,86 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         return obj
     }
     #parseHowToSuppliesFromStore(store) {
-        const obj = {suppy: null}
-        return obj
+        const supplies = []
+        return supplies 
     }
     #parseHowToToolsFromStore(store) {
-        const obj = {tool: null}
-        return obj
+        const tools = []
+        return tools
     }
-    #parseHowToStepsFromStore(store) { // 1層
-        const obj = {step: []}
-        for (const item of store) {
-            const step = this.generateTypeObj('HowToStep')
-            step.text = item.name
-            // image, video
-            obj.step.push(step)
+    //#parseHowToStepsFromStore(store) { return {step: store.map(item=>this.#parseHowToStepTextFromItem(item))} } // 1層
+    #parseHowToStepsFromStore(store) { return store.map(item=>this.#parseHowToStepTextFromItem(item)) } // 1層
+    #parseHowToStepsFromTree(tree) { // 2,3層
+        const steps = []
+        for (const node of tree.nodes) {
+            const maxDepth = this.#calcDepth(node)
+            if (1 === maxDepth) { steps.push(this.#parseHowToStepTextFromItem(node.content)) }
+            else if (2 === maxDepth) { steps.push(this.#parseHowToStepHasListFromNode(node)) }
+            else if (3 === maxDepth) { steps.push(this.#parseHowToSectionFromNode(node)) }
+            else { throw new TxtySchemaOrgHowToError(`引数treeの深さは1,2,3のいずれかであるべきです。`); }
         }
-        return obj
+        return steps
+        /*
+        if (2 === tree.maxDepth) { return tree.nodes.map(node=>this.#parseHowToStepHasListFromNode(node)); }
+        else if (3 === tree.maxDepth) { return tree.nodes.map(node=>this.#parseHowToSectionFromNode(node)); }
+        else { throw new TxtySchemaOrgHowToError(`引数treeのmaxDepthは2または3であるべきです。`); }
+        */
+        /*
+        const depth = this.#calcDepth(tree)
+        console.log(depth)
+        if (2 === depth) { return tree.nodes.map(node=>this.#parseHowToStepHasListFromNode(node)); }
+        else if (3 === depth) { return tree.nodes.map(node=>this.#parseHowToSectionFromNode(node)); }
+        else { throw new TxtySchemaOrgHowToError(`引数treeのmaxDepthは2または3であるべきです。`); }
+        */
     }
+    #calcDepth(node, depth=1) {
+        for (const child of node.nodes) {
+            if (0 < child.nodes.length) { depth = this.#calcDepth(child, ++depth); }
+        }
+        return depth
+    }
+    /*
     #parseHowToStepsFromTree(tree) { // 2,3層
         const obj = {step: []}
+        if (2 === tree.maxDepth) {
+            obj.step = tree.nodes.map(node=>this.#parseHowToStepHasListFromNode(node))
+        } else if (3 === tree.maxDepth) { obj.step = tree.nodes.map(node=>this.#parseHowToSectionFromNode(node)); }
+
+        else { throw new TxtySchemaOrgHowToError(`引数treeのmaxDepthは2または3であるべきです。`); }
         return obj
     }
+    */
+    #parseHowToSectionFromItem(item) { return {...this.generateTypeObj('HowToSection'), name: item.name, itemListElement: []} }
+    #parseHowToSectionFromNode(node) {
+        return {
+            ...this.generateTypeObj('HowToSection'), 
+            name: item.name, 
+            itemListElement: this.#parseHowToStepHasListFromNode(node),
+        }
+    }
+    #parseHowToStepNameTextFromItem(item) { return {...super.generateTypeObj('HowToStep'), name: item.name, text: ""}; } // 不使用
+    #parseHowToStepHasListFromItem(item) { return {...super.generateTypeObj('HowToStep'), name: item.name, itemListElement: []}; }
+    #parseHowToStepHasListFromNode(node) {
+        const step = {...this.generateTypeObj('HowToStep'), name: item.name, itemListElement: []}
+        for (const child of node.nodes) {
+            const direction = (child.content.name.toUpperCase().startsWith('TIP:')) ? 
+                                this.#parseHowToTipFromItem(child.content) : 
+                                this.#parseHowToDirectionFromItem(child.content);
+            step.itemListElement.push(direction)
+        }
+        return step
+    }
+    #parseHowToDirectionFromItem(item) { return {...this.generateTypeObj('HowToDirection'), text: item.name} }
+    #parseHowToTipFromItem(item) { return {...this.generateTypeObj('HowToTip'), text: item.name} }
     #parseHowToStepImage(options) {
 
     }
     #parseHowToStepVideo(options) {
 
     }
+
+
+
+
 }
 
