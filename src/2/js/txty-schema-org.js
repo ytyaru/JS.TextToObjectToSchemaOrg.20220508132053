@@ -103,20 +103,53 @@ class TxtySchemaOrgQuestion extends TxtySchemaOrgParser {
         return question
     }
 }
+/*
 class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
     parse(value, currency='JPY') {
         if (!value) { throw new TxtySchemaOrgMonetaryAmountError(`引数valueは必須です。`); }
         return {...this.generateTypeObj('MonetaryAmount'), value:value, currency:currency}
     }
-    //parse(value, currency='JPY') { return {...this.generateTypeObj('MonetaryAmount'), value:value, currency:currency}; }
-    /*
-    parse(value, currency='JPY') {
-        const obj = this.generateTypeObj('MonetaryAmount')
-        obj.value = value
-        obj.currency = currency
-        return obj
+}
+*/
+class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
+    // 123
+    // 123JPY
+    // 123 JPY
+    // 1,000 JPY
+    // 123.4 EUR
+    // 123.4 USD
+    parse(text, currency='JPY') {
+        const [value, cur] = this.isValid(text, currency)
+        if (!value) { throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。`); }
+        return this.#generate(value, cur)
+        /*
+        let value = Number(text.replace(',', ''))
+        if (!value) {
+            currency = text.trim().slice(-3)
+            value = Number(text.trim().slice(0, -3).replace(',', ''))
+            if (!value) { throw new TxtySchemaOrgMonetaryAmount Error(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。`); }
+        }
+        return {
+            '@type': 'MonetaryAmount',
+            currency: currency,
+            value: value,
+        }
+        */
     }
-    */
+    isValid(text, currency='JPY') {
+        let value = Number(text.replace(',', ''))
+        if (!value) {
+            currency = text.trim().slice(-3)
+            value = Number(text.trim().slice(0, -3).replace(',', ''))
+            if (!value) { return false }
+        }
+        return this.#generate(value, currency)
+    }
+    #generate(value, currency) { return {
+        '@type': 'MonetaryAmount',
+        currency: currency,
+        value: value,
+    }}
 }
 class TxtySchemaOrgImageObject extends TxtySchemaOrgParser {
     parseFromItem(item) {
@@ -181,6 +214,21 @@ class TxtySchemaOrgImageObject extends TxtySchemaOrgParser {
         return image
     }
 }
+class TxtySchemaOrgVideoObject extends TxtySchemaOrgParser {
+    parse(url, name, description, thumbnailUrl, uploadDate=null) { 
+        const video = this.generateTypeObj('VideoObject')
+        if (['mp4', 'avi', 'mov', 'wmv', 'mpg', 'mkv', 'flv', 'asf', 'vob'].some(ext=>url.endsWith('.'+ext))) {
+            video.contentUrl = url
+        } else {
+            video.embedUrl = url
+        }
+        video.name = name
+        video.description = description
+        video.thumbnailUrl = thumbnailUrl
+        video.uploadDate = (uploadDate) ? uploadDate : new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('Z')[0] + '+09:00'
+        return video
+    }
+}
 
 class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     parseFromComposite(compo) {
@@ -198,12 +246,30 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
                         this.#parseHowToStepsFromTree(compo[compo.length-1]);
         return options
     }
-    #parseHowToStepTextFromItem(item) { return {...super.generateTypeObj('HowToStep'), text: item.name}; }
     #parseHowToFromStore(store) {
         console.log(store)
         //if (store.length < 1)
         const obj = {}
         obj.name = store[0].name
+        let value = null
+        for (const item of store) {
+            try {
+                value = new Duration().parse(item.name)
+                if (value) {obj.totalTime = value}
+            }
+            catch (e) {
+                value = new TxtySchemaOrgMonetaryAmount().isValid(item.name)
+                if (value) {obj.estimatedCost = value}
+                if (['http://', 'https://'].some(protocol=>item.name.startsWith(protocol))) {
+                    if (!obj.hasOwnProperty('image')) { obj.image = item.name; }
+                    else {
+                        //if (!obj.hasOwnProperty('video')) { obj.video = #parseHowToVideo(obj, item.name); }
+                        if (!obj.hasOwnProperty('video')) {
+                            obj.video = new TxtySchemaOrgVideoObject.parse(item.name, obj.name, obj.name, obj.image); }
+                    }
+                }
+            }
+        }
         if (2 === store.length) {
 
         }
@@ -218,6 +284,7 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         const tools = []
         return tools
     }
+    #parseHowToStepTextFromItem(item) { return {...super.generateTypeObj('HowToStep'), text: item.name}; }
     //#parseHowToStepsFromStore(store) { return {step: store.map(item=>this.#parseHowToStepTextFromItem(item))} } // 1層
     #parseHowToStepsFromStore(store) { return store.map(item=>this.#parseHowToStepTextFromItem(item)) } // 1層
     #parseHowToStepsFromTree(tree) { // 2,3層
@@ -261,6 +328,7 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     }
     */
     #parseHowToSectionFromItem(item) { return {...this.generateTypeObj('HowToSection'), name: item.name, itemListElement: []} }
+
     #parseHowToSectionFromNode(node) {
         return {
             ...this.generateTypeObj('HowToSection'), 
@@ -289,7 +357,7 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
 
     }
 
-
+ 
 
 
 }

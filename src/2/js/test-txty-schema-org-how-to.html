@@ -12,11 +12,19 @@
 <script src="../lib/extensible-custom-error/0.0.7/min.js"></script>
 <!--<script src="lib/txty/0.0.2/min.js"></script>-->
 <!--<script src="../lib/txty/0.0.2/full.js"></script>-->
+<script src="../lib/duration-iso-8601/2.1.2/full.js"></script>
 <script src="../lib/txty/0.0.3/full.js"></script>
 <script src="txty-schema-org.js"></script>
 <script src="test-txty-schema-org-how-to.js"></script>
 <script>
 window.addEventListener('DOMContentLoaded', async(event)=>{
+    console.assert(1000 === Number('1000'))
+    console.log(Number('1,000')) // NaN
+    console.log(Number('1,000'.replace(',', '')))
+    console.assert(1000 === Number('1,000'.replace(',', '')))
+    console.log(Number('12.3'))
+    console.log(12.3 === Number('12.3'))
+    if ('123JPY'.match(/[0-9\,\.][\s]{0,}[a-zA-Z]{3}/g))
     new TestTxtySchemaOrgHowTo().test()
 });
 </script>
