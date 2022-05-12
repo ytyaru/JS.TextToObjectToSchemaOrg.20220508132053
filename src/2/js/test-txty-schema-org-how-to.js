@@ -18,6 +18,9 @@ class TestTxtySchemaOrgHowTo {
         this.#testBlock3()
         this.#testBlock3Option()
         this.#testBlock3Supplies()
+        this.#testBlock4()
+        this.#testBlock4Option()
+        this.#testBlock4Tools()
     }
     #testError(input, errorType, message) {
         try {
@@ -378,6 +381,89 @@ HowToの名前
         console.assert(!actual.supply[1].hasOwnProperty('image'))
         console.assert('素材3' === actual.supply[2].name)
         console.assert('https://supply3.png' === actual.supply[2].image)
+        console.assert(1 === actual.step.length)
+        console.assert('手順1' === actual.step[0].text)
+    }
+    #testBlock4() {
+        const txt = `
+HowToの名前
+
+素材1
+
+道具1
+
+手順1
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(actual.hasOwnProperty('supply'))
+        console.assert(actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert(1 === actual.supply.length)
+        console.assert('素材1' === actual.supply[0].name)
+        console.assert(1 === actual.tool.length)
+        console.assert('道具1' === actual.tool[0].name)
+        console.assert(1 === actual.step.length)
+        console.assert('手順1' === actual.step[0].text)
+    }
+    #testBlock4Option() {
+        const txt = `
+HowToの名前
+
+素材1
+
+道具1    https://tool1.png
+
+手順1
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(actual.hasOwnProperty('supply'))
+        console.assert(actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert(1 === actual.supply.length)
+        console.assert('素材1' === actual.supply[0].name)
+        console.assert(1 === actual.tool.length)
+        console.assert('道具1' === actual.tool[0].name)
+        console.assert('https://tool1.png' === actual.tool[0].image)
+        console.assert(1 === actual.step.length)
+        console.assert('手順1' === actual.step[0].text)
+    }
+    #testBlock4Tools() {
+        const txt = `
+HowToの名前
+
+素材1
+
+道具1    https://tool1.png
+道具2
+道具3    https://tool3.png
+
+手順1
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(actual.hasOwnProperty('supply'))
+        console.assert(actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert(1 === actual.supply.length)
+        console.assert('素材1' === actual.supply[0].name)
+        console.assert(3 === actual.tool.length)
+        console.assert('道具1' === actual.tool[0].name)
+        console.assert('https://tool1.png' === actual.tool[0].image)
+        console.assert('道具2' === actual.tool[1].name)
+        console.assert(!actual.tool[0].hasOwnProperty('image'))
+        console.assert('道具3' === actual.tool[2].name)
+        console.assert('https://tool3.png' === actual.tool[2].image)
         console.assert(1 === actual.step.length)
         console.assert('手順1' === actual.step[0].text)
     }
