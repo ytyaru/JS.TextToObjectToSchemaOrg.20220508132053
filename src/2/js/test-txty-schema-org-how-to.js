@@ -24,6 +24,15 @@ class TestTxtySchemaOrgHowTo {
         this.#testBlock2StoreSteps()
         this.#testBlock2StoreStepsOption()
         this.#testBlock2TreeSteps()
+        this.#testBlock2TreeSteps2_3()
+        this.#testBlock2TreeSteps3_1()
+        this.#testBlock2TreeSteps4Error()
+        this.#testBlock2TreeStepsVideoNothingOffsetError()
+        this.#testBlock2TreeStepsVideoOffsetFormatError1()
+        this.#testBlock2TreeStepsVideoOffsetFormatError2()
+        this.#testBlock2TreeStepsVideoOffsetFormatError3()
+        this.#testBlock2TreeStepsVideoOffsetFormatError4()
+        this.#testBlock2TreeStepsVideoOffsetFormatError5()
         this.#testBlock4Full()
     }
     #testError(input, errorType, message) {
@@ -516,7 +525,6 @@ HowToの名前
         console.assert(!actual.step[1].hasOwnProperty('image'))
         console.assert(`https://step3.png` === actual.step[2].image)
     }
-
     #testBlock2TreeSteps() {
         const txt = `
 HowToの名前
@@ -536,6 +544,132 @@ HowToの名前
         console.assert(`手順` === actual.step[0].name)
         console.assert(`HowToDirection` === actual.step[0].itemListElement[0]['@type'])
         console.assert(`手順1` === actual.step[0].itemListElement[0].text)
+    }
+    #testBlock2TreeSteps2_3() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1
+    手順2
+    手順3
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(!actual.hasOwnProperty('supply'))
+        console.assert(!actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+
+        console.assert(1 === actual.step.length)
+        console.assert(`HowToStep` === actual.step[0]['@type'])
+        console.assert(`手順` === actual.step[0].name)
+
+        console.assert(3 === actual.step[0].itemListElement.length)
+        console.assert(`HowToDirection` === actual.step[0].itemListElement[0]['@type'])
+        console.assert(`手順1` === actual.step[0].itemListElement[0].text)
+        console.assert(`HowToDirection` === actual.step[0].itemListElement[1]['@type'])
+        console.assert(`手順2` === actual.step[0].itemListElement[1].text)
+        console.assert(`HowToDirection` === actual.step[0].itemListElement[2]['@type'])
+        console.assert(`手順3` === actual.step[0].itemListElement[2].text)
+    }
+
+    #testBlock2TreeSteps3_1() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1
+        手順11
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(!actual.hasOwnProperty('supply'))
+        console.assert(!actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert(`HowToSection` === actual.step[0]['@type'])
+        console.assert(`手順` === actual.step[0].name)
+        console.assert(`HowToStep` === actual.step[0].itemListElement[0]['@type'])
+        console.assert(`手順1` === actual.step[0].itemListElement[0].name)
+        console.assert(`HowToDirection` === actual.step[0].itemListElement[0].itemListElement[0]['@type'])
+        console.assert(`手順11` === actual.step[0].itemListElement[0].itemListElement[0].text)
+    }
+    #testBlock2TreeSteps4Error() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1
+        手順11
+            エラー
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数treeの深さは1,2,3のいずれかであるべきです。: 4`)
+    }
+    #testBlock2TreeStepsVideoNothingOffsetError() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1    https://image.png    https://video.png
+        手順11
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数itemのoptionで2個目があるとき、3個目が必要です。3個目は 開始..終了 の書式で整数値をセットしてください。: 2`)
+    }
+    #testBlock2TreeStepsVideoOffsetFormatError1() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1    https://image.png    https://video.png    エラー
+        手順11
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: エラー`)
+    }
+    #testBlock2TreeStepsVideoOffsetFormatError2() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1    https://image.png    https://video.png    50
+        手順11
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: 50`)
+
+    }
+    #testBlock2TreeStepsVideoOffsetFormatError3() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1    https://image.png    https://video.png    50..
+        手順11
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: 50..`)
+    }
+    #testBlock2TreeStepsVideoOffsetFormatError4() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1    https://image.png    https://video.png    エラー..50
+        手順11
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: エラー..50`)
+    }
+    #testBlock2TreeStepsVideoOffsetFormatError5() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1    https://image.png    https://video.png    50..エラー
+        手順11
+`
+        this.#testError(Txty.composite(txt), TxtySchemaOrgHowToError, `引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: 50..エラー`)
     }
     #testBlock4Full() {
         const txt = `

@@ -290,22 +290,6 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     }
     #parseHowToSuppliesFromStore(store) { return this.#parseHowToItemsFromStore(store, 'HowToSupply') }
     #parseHowToToolsFromStore(store) { return this.#parseHowToItemsFromStore(store, 'HowToTool') }
-    /*
-        const supplies = []
-        for (const item of store) {
-            const supply = this.generateTypeObj('VideoObject')
-            supply.name = item.name
-            if (0 < item.options.length) { supply.image = item.options[0] }
-            supplies.push(supply)
-        }
-        return supplies 
-    }
-    #parseHowToToolsFromStore(store) {
-        const tools = []
-        return tools
-    }
-    */
-    //#parseHowToStepTextFromItem(item) { return {...super.generateTypeObj('HowToStep'), text: item.name}; }
     #parseHowToStepTextFromItem(item) {
         const step = super.generateTypeObj('HowToStep')
         step.text = item.name
@@ -316,9 +300,7 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
             step.video = new TxtySchemaOrgClip().parse(item.name, item.options[1], )
         }
         return step
-        //return {...super.generateTypeObj('HowToStep'), text: item.name}
     }
-    //#parseHowToStepsFromStore(store) { return {step: store.map(item=>this.#parseHowToStepTextFromItem(item))} } // 1層
     #parseHowToStepsFromStore(store) { return store.map(item=>this.#parseHowToStepTextFromItem(item)) } // 1層
     #parseHowToStepsFromTree(tree) { // 2,3層
         const steps = []
@@ -331,18 +313,6 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
             else { throw new TxtySchemaOrgHowToError(`引数treeの深さは1,2,3のいずれかであるべきです。: ${maxDepth}`); }
         }
         return steps
-        /*
-        if (2 === tree.maxDepth) { return tree.nodes.map(node=>this.#parseHowToStepHasListFromNode(node)); }
-        else if (3 === tree.maxDepth) { return tree.nodes.map(node=>this.#parseHowToSectionFromNode(node)); }
-        else { throw new TxtySchemaOrgHowToError(`引数treeのmaxDepthは2または3であるべきです。`); }
-        */
-        /*
-        const depth = this.#calcDepth(tree)
-        console.log(depth)
-        if (2 === depth) { return tree.nodes.map(node=>this.#parseHowToStepHasListFromNode(node)); }
-        else if (3 === depth) { return tree.nodes.map(node=>this.#parseHowToSectionFromNode(node)); }
-        else { throw new TxtySchemaOrgHowToError(`引数treeのmaxDepthは2または3であるべきです。`); }
-        */
     }
     #calcDepth(node, depth=1) { // 兄弟の中で最も深い階層数を返す
         if (0 === node.nodes.length) { return depth }
@@ -353,53 +323,23 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         }
         return depth
     }
-    /*
-    #calcDepth(node, depth=1) {
-        console.log(node)
-        let maxDepth = depth
-        for (const child of node.nodes) {
-            //if (0 < child.nodes.length) { console.log('+++++++++++++++++++++++'); depth = this.#calcDepth(child, ++depth); }
-            if (0 < node.nodes.length) { console.log('+++++++++++++++++++++++'); maxDepth = this.#calcDepth(child, ++maxDepth); }
-        }
-        console.log(depth, maxDepth)
-        if (3 === maxDepth) { return 3; }
-        else if (depth < maxDepth) { return depth + 1 }
-        else { return depth }
-        //return depth
-    }
-    */
-    /*
-    #parseHowToStepsFromTree(tree) { // 2,3層
-        const obj = {step: []}
-        if (2 === tree.maxDepth) {
-            obj.step = tree.nodes.map(node=>this.#parseHowToStepHasListFromNode(node))
-        } else if (3 === tree.maxDepth) { obj.step = tree.nodes.map(node=>this.#parseHowToSectionFromNode(node)); }
-
-        else { throw new TxtySchemaOrgHowToError(`引数treeのmaxDepthは2または3であるべきです。`); }
-        return obj
-    }
-    */
-    #parseHowToSectionFromItem(item) { return {...this.generateTypeObj('HowToSection'), name: item.name, itemListElement: []} }
-
     #parseHowToSectionFromNode(node) {
         return {
             ...this.generateTypeObj('HowToSection'), 
             name: node.content.name, 
             itemListElement: node.nodes.map(child=>this.#parseHowToStepHasListFromNode(child)),
-            //itemListElement: this.#parseHowToStepHasListFromNode(node),
         }
     }
-    #parseHowToStepNameTextFromItem(item) { return {...super.generateTypeObj('HowToStep'), name: item.name, text: ""}; } // 不使用
-    #parseHowToStepHasListFromItem(item) { return {...super.generateTypeObj('HowToStep'), name: item.name, itemListElement: []}; }
+    // 不使用
+    //#parseHowToStepNameTextFromItem(node) { return {...super.generateTypeObj('HowToStep'), name: node.content.name, text: ""}; }
+
     #parseHowToStepHasListFromNode(node) {
         const step = {...this.generateTypeObj('HowToStep'), name: node.content.name, itemListElement: []}
         if (0 < node.content.options.length) { step.image = node.content.options[0] }
         if (1 < node.content.options.length) {
             if (node.content.options.length < 3) { throw new TxtySchemaOrgHowToError(`引数itemのoptionで2個目があるとき、3個目が必要です。3個目は 開始..終了 の書式で整数値をセットしてください。: ${node.content.options.length}`); }
-            //let startOffets = Number(node.content.options[2])
             let [startOffsets, endOffsets] = node.content.options[2].split('..').map(v=>Number(v))
             if (!startOffsets || !endOffsets) { throw new TxtySchemaOrgHowToError(`引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: ${node.content.options[2]}`);}
-            //if (!Number(startOffsets) || !endOffsets || !Number(endOffsets)) { throw new TxtySchemaOrgHowToError(`引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: ${node.content.options[2]}`);}
             step.video = new TxtySchemaOrgClip().parse(node.content.name, node.content.options[1], startOffsets, endOffsets)
         }
         for (const child of node.nodes) {
@@ -412,15 +352,5 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     }
     #parseHowToDirectionFromItem(item) { return {...this.generateTypeObj('HowToDirection'), text: item.name} }
     #parseHowToTipFromItem(item) { return {...this.generateTypeObj('HowToTip'), text: item.name.trim().slice('TIP:'.length)} }
-    #parseHowToStepImage(options) {
-
-    }
-    #parseHowToStepVideo(options) {
-
-    }
-
- 
-
-
 }
 
