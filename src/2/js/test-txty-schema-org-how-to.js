@@ -21,6 +21,10 @@ class TestTxtySchemaOrgHowTo {
         this.#testBlock4()
         this.#testBlock4Option()
         this.#testBlock4Tools()
+        this.#testBlock2StoreSteps()
+        this.#testBlock2StoreStepsOption()
+        this.#testBlock2TreeSteps()
+        this.#testBlock4Full()
     }
     #testError(input, errorType, message) {
         try {
@@ -461,10 +465,166 @@ HowToの名前
         console.assert('道具1' === actual.tool[0].name)
         console.assert('https://tool1.png' === actual.tool[0].image)
         console.assert('道具2' === actual.tool[1].name)
-        console.assert(!actual.tool[0].hasOwnProperty('image'))
+        console.assert(!actual.tool[1].hasOwnProperty('image'))
         console.assert('道具3' === actual.tool[2].name)
         console.assert('https://tool3.png' === actual.tool[2].image)
         console.assert(1 === actual.step.length)
         console.assert('手順1' === actual.step[0].text)
+    }
+    #testBlock2StoreSteps() {
+        const txt = `
+HowToの名前
+
+手順1
+手順2
+手順3
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(!actual.hasOwnProperty('supply'))
+        console.assert(!actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert(3 === actual.step.length)
+        for (let i=0; i<actual.step.length; i++) {
+            console.assert(`手順${i+1}` === actual.step[i].text)
+        }
+    }
+    #testBlock2StoreStepsOption() {
+        const txt = `
+HowToの名前
+
+手順1    https://step1.png
+手順2
+手順3    https://step3.png
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(!actual.hasOwnProperty('supply'))
+        console.assert(!actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert(3 === actual.step.length)
+        for (let i=0; i<actual.step.length; i++) {
+            console.assert(`手順${i+1}` === actual.step[i].text)
+        }
+        console.assert(`https://step1.png` === actual.step[0].image)
+        console.assert(!actual.step[1].hasOwnProperty('image'))
+        console.assert(`https://step3.png` === actual.step[2].image)
+    }
+
+    #testBlock2TreeSteps() {
+        const txt = `
+HowToの名前
+
+手順
+    手順1
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(!actual.hasOwnProperty('supply'))
+        console.assert(!actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert(`HowToStep` === actual.step[0]['@type'])
+        console.assert(`手順` === actual.step[0].name)
+        console.assert(`HowToDirection` === actual.step[0].itemListElement[0]['@type'])
+        console.assert(`手順1` === actual.step[0].itemListElement[0].text)
+    }
+    #testBlock4Full() {
+        const txt = `
+HowToの名前
+P3DT4H5M6S
+1,234.5 EUR
+https://image.png    https://video.mp4
+
+素材1    https://supply1.png
+素材2
+素材3    https://supply3.png
+
+道具1    https://tool1.png
+道具2
+道具3    https://tool3.png
+
+準備
+    あれを用意する    https://step1.png    https://step1.mp4?s=10    10..20
+        あれをあれする。
+手順
+    手順1    https://step2.png    https://step1.mp4?s=20    20..30
+    手順2    https://step3.png    https://step1.mp4?s=30    30..40
+        手順2-1
+        手順2-2
+        TIP:ヒント
+後始末
+    ゴミを捨てる    https://step4.png    https://step1.mp4?s=40    40..50
+        ゴミを分別する
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        console.assert(actual.hasOwnProperty('supply'))
+        console.assert(actual.hasOwnProperty('tool'))
+
+        console.assert('HowToの名前' === actual.name)
+        console.assert('P3DT4H5M6S' === actual.totalTime)
+        console.assert('MonetaryAmount' === actual.estimatedCost['@type'])
+        console.assert('EUR' === actual.estimatedCost.currency)
+        console.assert(1,234.5 === actual.estimatedCost.value)
+        console.assert('https://image.png' === actual.image)
+        console.assert('VideoObject' === actual.video['@type'])
+        console.assert('HowToの名前' === actual.video.name)
+        console.assert('HowToの名前' === actual.video.description)
+        console.assert('https://image.png' === actual.video.thumbnailUrl)
+        console.assert('https://video.mp4' === actual.video.contentUrl)
+        console.assert(!actual.video.hasOwnProperty('embedUrl'))
+        console.assert(Date.parse(actual.video.uploadDate))
+
+        console.assert(3 === actual.supply.length)
+        console.assert('素材1' === actual.supply[0].name)
+        console.assert('https://supply1.png' === actual.supply[0].image)
+        console.assert('素材2' === actual.supply[1].name)
+        console.assert(!actual.supply[1].hasOwnProperty('image'))
+        console.assert('素材3' === actual.supply[2].name)
+        console.assert('https://supply3.png' === actual.supply[2].image)
+
+        console.assert(3 === actual.tool.length)
+        console.assert('道具1' === actual.tool[0].name)
+        console.assert('https://tool1.png' === actual.tool[0].image)
+        console.assert('道具2' === actual.tool[1].name)
+        console.assert(!actual.tool[1].hasOwnProperty('image'))
+        console.assert('道具3' === actual.tool[2].name)
+        console.assert('https://tool3.png' === actual.tool[2].image)
+
+        console.assert(3 === actual.step.length)
+        console.assert('HowToSection' === actual.step[0]['@type'])
+        console.assert('HowToSection' === actual.step[1]['@type'])
+        console.assert('HowToSection' === actual.step[2]['@type'])
+        console.assert('準備' === actual.step[0].name)
+        console.assert('手順' === actual.step[1].name)
+        console.assert('後始末' === actual.step[2].name)
+
+        console.assert(1 === actual.step[0].itemListElement.length)
+        console.assert(2 === actual.step[1].itemListElement.length)
+        console.assert(1 === actual.step[2].itemListElement.length)
+
+        console.assert('HowToStep' === actual.step[0].itemListElement[0]['@type'])
+        console.assert('あれを用意する' === actual.step[0].itemListElement[0].name)
+        console.assert('https://step1.png' === actual.step[0].itemListElement[0].image)
+        console.assert('Clip' === actual.step[0].itemListElement[0].video['@type'])
+        console.assert('あれを用意する' === actual.step[0].itemListElement[0].video.name)
+        console.assert('https://step1.mp4?s=10' === actual.step[0].itemListElement[0].video.url)
+        console.assert(10 === actual.step[0].itemListElement[0].video.startOffset)
+        console.assert(20 === actual.step[0].itemListElement[0].video.endOffset)
+
+        console.assert(1 === actual.step[0].itemListElement[0].itemListElement.length)
+        console.assert('HowToDirection' === actual.step[0].itemListElement[0].itemListElement[0]['@type'])
+        console.assert('あれをあれする。' === actual.step[0].itemListElement[0].itemListElement[0].text)
     }
 }
