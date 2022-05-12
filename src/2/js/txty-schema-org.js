@@ -103,14 +103,6 @@ class TxtySchemaOrgQuestion extends TxtySchemaOrgParser {
         return question
     }
 }
-/*
-class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
-    parse(value, currency='JPY') {
-        if (!value) { throw new TxtySchemaOrgMonetaryAmountError(`引数valueは必須です。`); }
-        return {...this.generateTypeObj('MonetaryAmount'), value:value, currency:currency}
-    }
-}
-*/
 class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
     // 123
     // 123JPY
@@ -122,19 +114,6 @@ class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
         const [value, cur] = this.isValid(text, currency)
         if (!value) { throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。`); }
         return this.#generate(value, cur)
-        /*
-        let value = Number(text.replace(',', ''))
-        if (!value) {
-            currency = text.trim().slice(-3)
-            value = Number(text.trim().slice(0, -3).replace(',', ''))
-            if (!value) { throw new TxtySchemaOrgMonetaryAmount Error(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。`); }
-        }
-        return {
-            '@type': 'MonetaryAmount',
-            currency: currency,
-            value: value,
-        }
-        */
     }
     isValid(text, currency='JPY') {
         let value = Number(text.replace(',', ''))
@@ -189,7 +168,6 @@ class TxtySchemaOrgImageObject extends TxtySchemaOrgParser {
     }
     #isSize(str) { // {width}x{height}
         const sizes = []
-        //const [w, h] = str.split('x')
         const values = str.split('x')
         if (2 !== values.length) { return false; }
         for (const value of values) {
@@ -332,7 +310,6 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     }
     // 不使用
     //#parseHowToStepNameTextFromItem(node) { return {...super.generateTypeObj('HowToStep'), name: node.content.name, text: ""}; }
-
     #parseHowToStepHasListFromNode(node) {
         const step = {...this.generateTypeObj('HowToStep'), name: node.content.name, itemListElement: []}
         if (0 < node.content.options.length) { step.image = node.content.options[0] }
