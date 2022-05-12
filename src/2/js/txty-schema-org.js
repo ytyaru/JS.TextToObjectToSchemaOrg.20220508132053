@@ -411,7 +411,7 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         return step
     }
     #parseHowToDirectionFromItem(item) { return {...this.generateTypeObj('HowToDirection'), text: item.name} }
-    #parseHowToTipFromItem(item) { return {...this.generateTypeObj('HowToTip'), text: item.name} }
+    #parseHowToTipFromItem(item) { return {...this.generateTypeObj('HowToTip'), text: item.name.trim().slice('TIP:'.length)} }
     #parseHowToStepImage(options) {
 
     }

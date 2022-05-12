@@ -556,13 +556,13 @@ https://image.png    https://video.mp4
     あれを用意する    https://step1.png    https://step1.mp4?s=10    10..20
         あれをあれする。
 手順
-    手順1    https://step2.png    https://step1.mp4?s=20    20..30
-    手順2    https://step3.png    https://step1.mp4?s=30    30..40
+    手順1    https://step2.png    https://step2.mp4?s=20    20..30
+    手順2    https://step3.png    https://step3.mp4?s=30    30..40
         手順2-1
         手順2-2
         TIP:ヒント
 後始末
-    ゴミを捨てる    https://step4.png    https://step1.mp4?s=40    40..50
+    ゴミを捨てる    https://step4.png    https://step4.mp4?s=40    40..50
         ゴミを分別する
 `
         const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
@@ -626,5 +626,40 @@ https://image.png    https://video.mp4
         console.assert(1 === actual.step[0].itemListElement[0].itemListElement.length)
         console.assert('HowToDirection' === actual.step[0].itemListElement[0].itemListElement[0]['@type'])
         console.assert('あれをあれする。' === actual.step[0].itemListElement[0].itemListElement[0].text)
+
+        console.assert('HowToStep' === actual.step[1].itemListElement[0]['@type'])
+        console.assert('手順1' === actual.step[1].itemListElement[0].name)
+        console.assert('https://step2.png' === actual.step[1].itemListElement[0].image)
+        console.assert('Clip' === actual.step[1].itemListElement[0].video['@type'])
+        console.assert('手順1' === actual.step[1].itemListElement[0].video.name)
+        console.assert('https://step2.mp4?s=20' === actual.step[1].itemListElement[0].video.url)
+        console.assert(20 === actual.step[1].itemListElement[0].video.startOffset)
+        console.assert(30 === actual.step[1].itemListElement[0].video.endOffset)
+
+        console.assert('HowToStep' === actual.step[1].itemListElement[1]['@type'])
+        console.assert('手順2' === actual.step[1].itemListElement[1].name)
+        console.assert('https://step3.png' === actual.step[1].itemListElement[1].image)
+        console.assert('Clip' === actual.step[1].itemListElement[1].video['@type'])
+        console.assert('手順2' === actual.step[1].itemListElement[1].video.name)
+        console.assert('https://step3.mp4?s=30' === actual.step[1].itemListElement[1].video.url)
+        console.assert(30 === actual.step[1].itemListElement[1].video.startOffset)
+        console.assert(40 === actual.step[1].itemListElement[1].video.endOffset)
+
+        console.assert(3 === actual.step[1].itemListElement[1].itemListElement.length)
+        console.assert('HowToDirection' === actual.step[1].itemListElement[1].itemListElement[0]['@type'])
+        console.assert('手順2-1' === actual.step[1].itemListElement[1].itemListElement[0].text)
+        console.assert('HowToDirection' === actual.step[1].itemListElement[1].itemListElement[1]['@type'])
+        console.assert('手順2-2' === actual.step[1].itemListElement[1].itemListElement[1].text)
+        console.assert('HowToTip' === actual.step[1].itemListElement[1].itemListElement[2]['@type'])
+        console.assert('ヒント' === actual.step[1].itemListElement[1].itemListElement[2].text)
+
+        console.assert('HowToStep' === actual.step[2].itemListElement[0]['@type'])
+        console.assert('ゴミを捨てる' === actual.step[2].itemListElement[0].name)
+        console.assert('https://step4.png' === actual.step[2].itemListElement[0].image)
+        console.assert('Clip' === actual.step[2].itemListElement[0].video['@type'])
+        console.assert('ゴミを捨てる' === actual.step[2].itemListElement[0].video.name)
+        console.assert('https://step4.mp4?s=40' === actual.step[2].itemListElement[0].video.url)
+        console.assert(40 === actual.step[2].itemListElement[0].video.startOffset)
+        console.assert(50 === actual.step[2].itemListElement[0].video.endOffset)
     }
 }
