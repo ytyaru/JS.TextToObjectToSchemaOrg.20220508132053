@@ -16,6 +16,7 @@ Rocket|`==`,`<`,`>`における条件分岐。`roc = new Rocket(閾値, 実際�
 
 * ISO8601の`PT1Y2M3D12H34M56S`
 * `hh:mm:ss`（`hh:mm`,`mm:ss`,`hh:mm:`,`:mm:ss`）
+* `1y 2M 3w 4d 5h 6m 7s`
 * `sssss`
 * `Date`型
 

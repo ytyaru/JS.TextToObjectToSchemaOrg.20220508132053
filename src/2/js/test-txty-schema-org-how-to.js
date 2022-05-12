@@ -6,6 +6,7 @@ class TestTxtySchemaOrgHowTo {
         this.#testBlock1()
         this.#testBlock5()
         this.#testBlock2()
+        this.#testHowToStoreFull()
     }
     #testError(input, errorType, message) {
         try {
@@ -53,6 +54,39 @@ HowToの名前
         console.assert(actual.hasOwnProperty('step'))
         
         console.assert('HowToの名前' === actual.name)
+        console.assert(Array.isArray(actual.step))
+        console.assert(1 === actual.step.length)
+        console.assert('手順1' === actual.step[0].text)
+    }
+    #testHowToStoreFull() {
+        const txt = `
+HowToの名前
+P3DT4H5M6S
+1,234.5 EUR
+https://image.png    https://video.mp4
+
+手順1
+`
+        const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
+        console.log(actual)
+        console.assert(actual.hasOwnProperty('name'))
+        console.assert(actual.hasOwnProperty('step'))
+        
+        console.assert('HowToの名前' === actual.name)
+        console.assert('P3DT4H5M6S' === actual.totalTime)
+        console.assert('MonetaryAmount' === actual.estimatedCost['@type'])
+        console.assert('EUR' === actual.estimatedCost.currency)
+        console.assert(1,234.5 === actual.estimatedCost.value)
+        console.assert('https://image.png' === actual.image)
+        console.assert('VideoObject' === actual.video['@type'])
+        console.assert('HowToの名前' === actual.video.name)
+        console.assert('HowToの名前' === actual.video.description)
+        console.assert('https://image.png' === actual.video.thumbnailUrl)
+        console.assert('https://video.mp4' === actual.video.contentUrl)
+        console.assert(!actual.video.hasOwnProperty('embedUrl'))
+        console.assert(Date.parse(actual.video.uploadDate))
+//        console.assert(actual.video.uploadDate instanceof Date)
+
         console.assert(Array.isArray(actual.step))
         console.assert(1 === actual.step.length)
         console.assert('手順1' === actual.step[0].text)

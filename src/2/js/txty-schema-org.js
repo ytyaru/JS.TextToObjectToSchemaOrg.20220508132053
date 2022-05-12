@@ -255,23 +255,30 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         for (const item of store) {
             try {
                 value = new Duration().parse(item.name)
-                if (value) {obj.totalTime = value}
+                console.log(value)
+                if (value) {obj.totalTime = item.name}
+                //if (value) {obj.totalTime = value}
+                continue
             }
             catch (e) {
                 value = new TxtySchemaOrgMonetaryAmount().isValid(item.name)
                 if (value) {obj.estimatedCost = value}
                 if (['http://', 'https://'].some(protocol=>item.name.startsWith(protocol))) {
+                    console.log(item.name)
+                    obj.image = item.name
+                    if (0 < item.options.length) {
+                        obj.video = new TxtySchemaOrgVideoObject().parse(item.options[0], obj.name, obj.name, obj.image);
+                    }
+                    /*
                     if (!obj.hasOwnProperty('image')) { obj.image = item.name; }
                     else {
-                        //if (!obj.hasOwnProperty('video')) { obj.video = #parseHowToVideo(obj, item.name); }
                         if (!obj.hasOwnProperty('video')) {
-                            obj.video = new TxtySchemaOrgVideoObject.parse(item.name, obj.name, obj.name, obj.image); }
+                            obj.video = new TxtySchemaOrgVideoObject.parse(item.name, obj.name, obj.name, obj.image);
+                        }
                     }
+                    */
                 }
             }
-        }
-        if (2 === store.length) {
-
         }
         console.log(obj)
         return obj
