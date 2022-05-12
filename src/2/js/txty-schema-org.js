@@ -269,14 +269,33 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         }
         return obj
     }
-    #parseHowToSuppliesFromStore(store) {
+    #parseHowToItemsFromStore(store, type) {
         const supplies = []
+        for (const item of store) {
+            const supply = this.generateTypeObj(type)
+            supply.name = item.name
+            if (0 < item.options.length) { supply.image = item.options[0] }
+            supplies.push(supply)
+        }
+        return supplies 
+    }
+    #parseHowToSuppliesFromStore(store) { return this.#parseHowToItemsFromStore(store, 'HowToSupply') }
+    #parseHowToToolsFromStore(store) { return this.#parseHowToItemsFromStore(store, 'HowToTool') }
+    /*
+        const supplies = []
+        for (const item of store) {
+            const supply = this.generateTypeObj('VideoObject')
+            supply.name = item.name
+            if (0 < item.options.length) { supply.image = item.options[0] }
+            supplies.push(supply)
+        }
         return supplies 
     }
     #parseHowToToolsFromStore(store) {
         const tools = []
         return tools
     }
+    */
     #parseHowToStepTextFromItem(item) { return {...super.generateTypeObj('HowToStep'), text: item.name}; }
     //#parseHowToStepsFromStore(store) { return {step: store.map(item=>this.#parseHowToStepTextFromItem(item))} } // 1層
     #parseHowToStepsFromStore(store) { return store.map(item=>this.#parseHowToStepTextFromItem(item)) } // 1層
