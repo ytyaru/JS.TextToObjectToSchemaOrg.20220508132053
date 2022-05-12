@@ -247,18 +247,13 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         return options
     }
     #parseHowToFromStore(store) {
-        console.log(store)
-        //if (store.length < 1)
         const obj = {}
         obj.name = store[0].name
         let value = null
         for (const item of store) {
             try {
                 value = new Duration().parse(item.name)
-                console.log(value)
                 if (value) {obj.totalTime = item.name}
-                //if (value) {obj.totalTime = value}
-                continue
             }
             catch (e) {
                 value = new TxtySchemaOrgMonetaryAmount().isValid(item.name)
@@ -269,18 +264,9 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
                     if (0 < item.options.length) {
                         obj.video = new TxtySchemaOrgVideoObject().parse(item.options[0], obj.name, obj.name, obj.image);
                     }
-                    /*
-                    if (!obj.hasOwnProperty('image')) { obj.image = item.name; }
-                    else {
-                        if (!obj.hasOwnProperty('video')) {
-                            obj.video = new TxtySchemaOrgVideoObject.parse(item.name, obj.name, obj.name, obj.image);
-                        }
-                    }
-                    */
                 }
             }
         }
-        console.log(obj)
         return obj
     }
     #parseHowToSuppliesFromStore(store) {
