@@ -701,6 +701,7 @@ https://image.png    https://video.mp4
 `
         const actual = new TxtySchemaOrgHowTo().parseFromComposite(Txty.composite(txt)) 
         console.log(actual)
+        console.log(JSON.stringify(actual))
         console.assert(actual.hasOwnProperty('name'))
         console.assert(actual.hasOwnProperty('step'))
         console.assert(actual.hasOwnProperty('supply'))

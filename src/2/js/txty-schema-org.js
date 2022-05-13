@@ -114,15 +114,19 @@ class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
     // 123.4 USD
     parse(text, currency='JPY') {
         let value = null
-        if (Number(text)) { value = Number(text); }
-        else if ('string' === typeof value || value instanceof String) {
+        // 末尾3字が非数ならcurrency付きと判定する
+        if (('string' === typeof text || text instanceof String) && isNaN(text.trim().slice(-3))) {
             value = Number(text.replace(',', ''))
+            if (isNaN(text.trim().replace(',', '').slice(0, -3))) {
+                throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。: ${text}`)
+            }
             if (!value) {
                 currency = text.trim().slice(-3)
                 value = Number(text.trim().slice(0, -3).replace(',', ''))
                 if (!value) { return false }
             }
-        } else { throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。: ${text}`); }
+        } else if (Number(text)) { value = Number(text); }
+        else { throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。: ${text}`); }
         return this.#generate(value, currency)
     }
     #generate(value, currency) { return {
@@ -244,13 +248,18 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
                 if (value) {obj.totalTime = item.name}
             }
             catch (e) {
-                value = new TxtySchemaOrgMonetaryAmount().isValid(item.name)
-                if (value) {obj.estimatedCost = value}
-                if (['http://', 'https://'].some(protocol=>item.name.startsWith(protocol))) {
+                try {
                     console.log(item.name)
-                    obj.image = item.name
-                    if (0 < item.options.length) {
-                        obj.video = new TxtySchemaOrgVideoObject().parse(item.options[0], obj.name, obj.name, obj.image);
+                    value = new TxtySchemaOrgMonetaryAmount().parse(item.name)
+                    console.log(value)
+                    obj.estimatedCost = value
+                } catch (e) {
+                    if (['http://', 'https://'].some(protocol=>item.name.startsWith(protocol))) {
+                        console.log(item.name)
+                        obj.image = item.name
+                        if (0 < item.options.length) {
+                            obj.video = new TxtySchemaOrgVideoObject().parse(item.options[0], obj.name, obj.name, obj.image);
+                        }
                     }
                 }
             }
