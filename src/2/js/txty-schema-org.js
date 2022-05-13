@@ -423,7 +423,8 @@ class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
             if (answer.isAccept) { question.acceptedAnswer.push(this.#generateAnswer(answer)) }
             else { question.suggestedAnswer.push(this.#generateAnswer(answer)) }
         }
-        question.eduQuestionType = (1 < (answers.reduce((prev, item) => {return prev + (item.isAccept ? 1 : 0)}, 0))) ? 'Checkbox' : 'Multiple choice'
+        question.eduQuestionType = this.#getEduQuestionType(answers)
+//        question.eduQuestionType = (1 < (answers.reduce((prev, item) => {return prev + (item.isAccept ? 1 : 0)}, 0))) ? 'Checkbox' : 'Multiple choice'
         return question
     }
     #makeAnswerData(item) { return {
@@ -431,6 +432,11 @@ class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
         text: item.name.slice(1), 
         comment: (0 < item.options.length) ? item.options[0] : ''
     }}
+    #getEduQuestionType(answers) {
+        const count = answers.reduce((prev, item) => {return prev + (item.isAccept ? 1 : 0)}, 0)
+        if (count < 1) {throw new TxtySchemaOrgPracticeProblemError(`ひとつも正解がありません。回答itemは最初の文字が「⭕」「○」「☑」「❌」「☓」「☐」のいずれかであるべきです。前者3つが正解、後者3つが間違いを表します。回答のうちひとつ以上は正解であるべきです。`)}
+        return (1 < count) ? 'Checkbox' : 'Multiple choice'
+    }
     #getIsAccept(item) {
         if (['⭕','○','☑'].some(c=>c===item.name[0])) { return true }
         if (['❌','☓','☐'].some(c=>c===item.name[0])) { return false }
