@@ -10,6 +10,7 @@ class TestTxtySchemaOrgPracticeProblem {
         this.#testMinimum()
         this.#testMaxAnswser6()
         this.#testQuestion3()
+        this.#testMinimumComment()
     }
     #testBlank() {
         const errorType = TxtyStoreError
@@ -218,6 +219,7 @@ class TestTxtySchemaOrgPracticeProblem {
         console.log(txt)
         const actual = new TxtySchemaOrgPracticeProblem().parseFromStores(Txty.stores(txt))
         console.log(actual)
+        console.log(JSON.stringify(actual))
         console.assert('https://schema.org' === actual['@context'])
         console.assert('Quiz' === actual['@type'])
         console.assert('Practice problem' === actual.learningResourceType)
@@ -274,4 +276,44 @@ class TestTxtySchemaOrgPracticeProblem {
         console.assert(`回答文3-3` === actual.hasPart[2].suggestedAnswer[1].text)
         console.assert(!actual.hasPart[2].suggestedAnswer[1].hasOwnProperty('comment'))
     }
+    #testMinimumComment() {
+        const txt = `練習問題名
+
+質問文1
+⭕回答文1    これが正解である理由。
+❌回答文2    これが間違いである理由。
+`
+        console.log(txt)
+        const actual = new TxtySchemaOrgPracticeProblem().parseFromStores(Txty.stores(txt))
+        console.log(actual)
+        console.log(JSON.stringify(actual))
+        console.assert('https://schema.org' === actual['@context'])
+        console.assert('Quiz' === actual['@type'])
+        console.assert('Practice problem' === actual.learningResourceType)
+        console.assert('Thing' === actual.about['@type'])
+        console.assert('練習問題名' === actual.about.name)
+
+        console.assert(Array.isArray(actual.hasPart))
+        console.assert(1 === actual.hasPart.length)
+        console.assert('Question' === actual.hasPart[0]['@type'])
+        console.assert('質問文1' === actual.hasPart[0].text)
+        console.assert('Multiple choice' === actual.hasPart[0].eduQuestionType)
+
+        console.assert(Array.isArray(actual.hasPart[0].acceptedAnswer))
+        console.assert(1 === actual.hasPart[0].acceptedAnswer.length)
+        console.assert('Answer' === actual.hasPart[0].acceptedAnswer[0]['@type'])
+        console.assert('回答文1' === actual.hasPart[0].acceptedAnswer[0].text)
+//        console.assert(!actual.hasPart[0].acceptedAnswer[0].hasOwnProperty('comment'))
+        console.assert('Comment' === actual.hasPart[0].acceptedAnswer[0].comment['@type'])
+        console.assert('これが正解である理由。' === actual.hasPart[0].acceptedAnswer[0].comment.text)
+
+        console.assert(Array.isArray(actual.hasPart[0].suggestedAnswer))
+        console.assert(1 === actual.hasPart[0].suggestedAnswer.length)
+        console.assert('Answer' === actual.hasPart[0].suggestedAnswer[0]['@type'])
+        console.assert('回答文2' === actual.hasPart[0].suggestedAnswer[0].text)
+//        console.assert(!actual.hasPart[0].suggestedAnswer[0].hasOwnProperty('comment'))
+        console.assert('Comment' === actual.hasPart[0].suggestedAnswer[0].comment['@type'])
+        console.assert('これが間違いである理由。' === actual.hasPart[0].suggestedAnswer[0].comment.text)
+    }
+
 }
