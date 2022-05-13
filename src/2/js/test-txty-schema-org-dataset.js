@@ -7,6 +7,11 @@ class TestTxtySchemaOrgDataset {
         this.#testParseItemUrl2()
         this.#testParseItemUrl3()
 
+        this.#testParseItemShortDescriptionError()
+        this.#testParseItemLongDescriptionError()
+        this.#testParseStoreShortDescriptionError()
+        this.#testParseStoreLongDescriptionError()
+
         this.#testParseStoreNameOnly()
         this.#testParseStoreMinimum()
         this.#testParseStoreOption1()
@@ -33,9 +38,74 @@ class TestTxtySchemaOrgDataset {
             if (e.message !== message) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
         }
     }
+    #testParseItemShortDescriptionError() {
+        const errorType = TxtySchemaOrgDatasetError
+        const message = `説明文は50〜5000字以内であるべきです。:18\nhttps://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
+        try {
+            const name = `データセット名`
+            const description = `50〜5000字より短いためエラー。`
+            const txt = `${name}    ${description}`
+            const actual = new TxtySchemaOrgDataset().parseFromItem(Txty.item(txt))
+            throw new UnitTestError(`例外が発生すべきところで発生しませんでした。`)
+        }
+        catch (e) {
+            console.log(e)
+            if (!(e instanceof errorType)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
+            if (e.message !== message) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
+        }
+    }
+    #testParseItemLongDescriptionError() {
+        const errorType = TxtySchemaOrgDatasetError
+        const message = `説明文は50〜5000字以内であるべきです。:5001\nhttps://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
+        try {
+            const name = `データセット名`
+            const description = `a`.repeat(5001)
+            const txt = `${name}    ${description}`
+            const actual = new TxtySchemaOrgDataset().parseFromItem(Txty.item(txt))
+            throw new UnitTestError(`例外が発生すべきところで発生しませんでした。`)
+        }
+        catch (e) {
+            console.log(e)
+            if (!(e instanceof errorType)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
+            if (e.message !== message) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
+        }
+    }
+    #testParseStoreShortDescriptionError() {
+        const errorType = TxtySchemaOrgDatasetError
+        const message = `説明文は50〜5000字以内であるべきです。:18\nhttps://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
+        try {
+            const name = `データセット名`
+            const description = `50〜5000字より短いためエラー。`
+            const txt = `${name}\n${description}`
+            const actual = new TxtySchemaOrgDataset().parseFromStore(Txty.store(txt))
+            throw new UnitTestError(`例外が発生すべきところで発生しませんでした。`)
+        }
+        catch (e) {
+            console.log(e)
+            if (!(e instanceof errorType)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
+            if (e.message !== message) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
+        }
+    }
+    #testParseStoreLongDescriptionError() {
+        const errorType = TxtySchemaOrgDatasetError
+        const message = `説明文は50〜5000字以内であるべきです。:5001\nhttps://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
+        try {
+            const name = `データセット名`
+            const description = `a`.repeat(5001)
+            const txt = `${name}\n${description}`
+            const actual = new TxtySchemaOrgDataset().parseFromStore(Txty.store(txt))
+            throw new UnitTestError(`例外が発生すべきところで発生しませんでした。`)
+        }
+        catch (e) {
+            console.log(e)
+            if (!(e instanceof errorType)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
+            if (e.message !== message) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
+        }
+    }
+
     #testParseItemMinimu() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const txt = `${name}    ${description}`
         const actual = new TxtySchemaOrgDataset().parseFromItem(Txty.item(txt))
         console.log(actual)
@@ -49,7 +119,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseItemUrl1() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const ext = `csv`
         const url = `https://example.com/category/some-data.${ext}`
         const txt = `${name}    ${description}    ${url}`
@@ -67,7 +137,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseItemUrl2() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         //const ext = `csv`
         //const url = `https://example.com/category/some-data.${ext}`
         const exts = ['csv', 'xml']
@@ -89,7 +159,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseItemUrl3() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         //const ext = `csv`
         //const url = `https://example.com/category/some-data.${ext}`
         const exts = ['csv', 'xml', 'json']
@@ -127,7 +197,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseStoreMinimum() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const txt = `${name}\n${description}`
         console.log(txt)
         const actual = new TxtySchemaOrgDataset().parseFromStore(Txty.store(txt))
@@ -144,7 +214,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseStoreOption1() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const url = `https://example.com/dataset.html`
         const txt = `${name}    ${url}\n${description}`
         console.log(txt)
@@ -163,7 +233,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseStoreOption2() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const url = `https://example.com/dataset.html`
         const license = `https://example.com/license.html`
         const txt = `${name}    ${url}    ${license}\n${description}`
@@ -184,7 +254,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseStoreOption3() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const url = `https://example.com/dataset.html`
         const license = `https://example.com/license.html`
         const authorName = `著者名`
@@ -207,7 +277,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseStoreOption4() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const url = `https://example.com/dataset.html`
         const license = `https://example.com/license.html`
         const authorName = `著者名`
@@ -231,7 +301,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseStoreOption5() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const url = `https://example.com/dataset.html`
         const license = `https://example.com/license.html`
         const authorName = `著者名`
@@ -255,7 +325,7 @@ class TestTxtySchemaOrgDataset {
     }
     #testParseStoreUrl1() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const distri = [{url:'https://example.com/dataset.csv'}]
         const url = `https://example.com/dataset.html`
         const license = `https://example.com/license.html`
@@ -286,7 +356,7 @@ ${distri[0].url}`
     }
     #testParseStoreUrlFormat1() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const distri = [{url:'https://example.com/dataset.csv', format:'CSV'}]
         const url = `https://example.com/dataset.html`
         const license = `https://example.com/license.html`
@@ -317,7 +387,7 @@ ${distri[0].url}    ${distri[0].format}`
     }
     #testParseStoreUrlFormat3() {
         const name = `データセット名`
-        const description = `データセットの説明文。`
+        const description = `データセットの説明文。50〜5000字以内であるべきです。https://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`
         const distri = [{url:'https://example.com/dataset.csv', format:'CSV'},
                         {url:'https://example.com/dataset.xml'},
                         {url:'https://example.com/dataset.json', format:'JSON'}]
@@ -334,6 +404,7 @@ ${distri[2].url}    ${distri[2].format}`
         console.log(txt)
         const actual = new TxtySchemaOrgDataset().parseFromStore(Txty.store(txt))
         console.log(actual)
+        console.log(JSON.stringify(actual))
         console.assert('https://schema.org' === actual['@context'])
         console.assert('Dataset' === actual['@type'])
         console.assert(name === actual.name)

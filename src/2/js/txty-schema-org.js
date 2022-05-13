@@ -368,6 +368,7 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
         const obj = super.generateContextTypeObj('Dataset')
         obj.name = item.name
         obj.description = item.options[0]
+        this.#checkDescription(obj.description)
         if (1 < item.options.length) {
             obj.distribution = item.options.slice(1).map(url=>new TxtySchemaOrgDataDownload().parse(url))
         }
@@ -380,6 +381,7 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
         obj.name = store[0].name
         obj.description = store[1].name
         obj.isAccessibleForFree = true
+        this.#checkDescription(obj.description)
         if (0 < store[0].options.length) { obj.url = store[0].options[0] }
         if (1 < store[0].options.length) { obj.license = store[0].options[1] }
         if (2 < store[0].options.length) {
@@ -393,6 +395,9 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
             obj.distribution = store.slice(2).map(item=>new TxtySchemaOrgDataDownload().parseFromItem(item))
         }
         return obj
+    }
+    #checkDescription(description) {
+        if (description.length < 50 || 5000 < description.length) {throw new TxtySchemaOrgDatasetError(`説明文は50〜5000字以内であるべきです。:${description.length}\nhttps://developers.google.com/search/docs/advanced/structured-data/dataset?hl=ja#dataset`);}
     }
 }
 class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
