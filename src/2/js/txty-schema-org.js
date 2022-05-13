@@ -368,9 +368,6 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
         obj.name = item.name
         obj.description = item.options[0]
         if (1 < item.options.length) {
-            //obj.distribution = []
-            //const parser = new TxtySchemaOrgDataDownload().parse 
-            //obj.distribution = item.options.slice(1).map(url=>parser(url))
             obj.distribution = item.options.slice(1).map(url=>new TxtySchemaOrgDataDownload().parse(url))
         }
         return obj
@@ -378,6 +375,7 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
     parseFromStore(store) {
         if (store.length < 2) {throw new TxtySchemaOrgDatasetError(`引数storeは2つ以上の要素をもった配列であるべきです。1つ目が「データセット名    URL    License    creator.name    creator.url    isNotFree」、2つ目が「データセット説明」、3つ目以降が「URL    書式」であることを期待します。`);}
         const obj = super.generateContextTypeObj('Dataset')
+        console.log(store)
         obj.name = store[0].name
         obj.description = store[1].name
         obj.isAccessibleForFree = true
@@ -385,14 +383,15 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
         if (1 < store[0].options.length) { obj.license = store[0].options[1] }
         if (2 < store[0].options.length) {
             const person = (3 < store[0].options.length) ? 
-                            new TxtySchemaOrgPerson().parse(options[2], options[3]) : 
-                            new TxtySchemaOrgPerson().parse(options[2])
+                            new TxtySchemaOrgPerson().parse(store[0].options[2], store[0].options[3]) : 
+                            new TxtySchemaOrgPerson().parse(store[0].options[2])
             obj.creator = person
         }
         if (4 < store[0].options.length) { obj.isAccessibleForFree = false}
         if (2 < store.length) {
-            const parser = new TxtySchemaOrgDataDownload().parseFromItem
-            obj.distribution = store.slice(2).map(item=>parser(item))
+//            const parser = new TxtySchemaOrgDataDownload().parseFromItem
+//            obj.distribution = store.slice(2).map(item=>parser(item))
+            obj.distribution = store.slice(2).map(item=>new TxtySchemaOrgDataDownload().parseFromItem(item))
         }
         return obj
     }
