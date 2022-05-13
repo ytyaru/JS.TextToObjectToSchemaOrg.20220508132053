@@ -361,20 +361,23 @@ class TxtySchemaOrgDataDownload extends TxtySchemaOrgParser {
 }
 class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
     parseFromItem(item) {
-        if (item.options.length < 2) {throw new TxtySchemaOrgDatasetError(`引数itemは1つ以上のoptions要素をもった配列であるべきです。1つ目が「データセット説明」、2つ目以降が「ダウンロードURL」であることを期待します。`);}
-        const obj = super.generateTypeObj('DataDownload')
+        console.log(item.options)
+        console.log(item.options.length)
+        if (item.options.length < 1) {throw new TxtySchemaOrgDatasetError(`引数itemは1つ以上のoptions要素をもった配列であるべきです。1つ目が「データセット説明」、2つ目以降が「ダウンロードURL」であることを期待します。`);}
+        const obj = super.generateContextTypeObj('Dataset')
         obj.name = item.name
-        obj.description = item.options[0].name
-        if (2 < item.options.length) {
-            obj.distribution = []
-            const parser = new TxtySchemaOrgDataDownload().parse 
-            item.options.slice(2).map(url=>parser(url))
+        obj.description = item.options[0]
+        if (1 < item.options.length) {
+            //obj.distribution = []
+            //const parser = new TxtySchemaOrgDataDownload().parse 
+            //obj.distribution = item.options.slice(1).map(url=>parser(url))
+            obj.distribution = item.options.slice(1).map(url=>new TxtySchemaOrgDataDownload().parse(url))
         }
         return obj
     }
     parseFromStore(store) {
         if (store.length < 2) {throw new TxtySchemaOrgDatasetError(`引数storeは2つ以上の要素をもった配列であるべきです。1つ目が「データセット名    URL    License    creator.name    creator.url    isNotFree」、2つ目が「データセット説明」、3つ目以降が「URL    書式」であることを期待します。`);}
-        const obj = super.generateTypeObj('DataDownload')
+        const obj = super.generateContextTypeObj('Dataset')
         obj.name = store[0].name
         obj.description = store[1].name
         obj.isAccessibleForFree = true
