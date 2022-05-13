@@ -112,17 +112,16 @@ class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
     // 123.4 EUR
     // 123.4 USD
     parse(text, currency='JPY') {
-        const [value, cur] = this.isValid(text, currency)
-        if (!value) { throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。`); }
-        return this.#generate(value, cur)
-    }
-    isValid(text, currency='JPY') {
-        let value = Number(text.replace(',', ''))
-        if (!value) {
-            currency = text.trim().slice(-3)
-            value = Number(text.trim().slice(0, -3).replace(',', ''))
-            if (!value) { return false }
-        }
+        let value = null
+        if (Number(text)) { value = Number(text); }
+        else if ('string' === typeof value || value instanceof String) {
+            value = Number(text.replace(',', ''))
+            if (!value) {
+                currency = text.trim().slice(-3)
+                value = Number(text.trim().slice(0, -3).replace(',', ''))
+                if (!value) { return false }
+            }
+        } else { throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。: ${text}`); }
         return this.#generate(value, currency)
     }
     #generate(value, currency) { return {

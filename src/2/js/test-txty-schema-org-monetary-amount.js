@@ -11,8 +11,9 @@ class TestTxtySchemaOrgMonetaryAmount {
             throw new UnitTestError(`例外が発生すべきところで発生しませんでした。`)
         }
         catch (e) {
+            console.log(e)
             if (!(e instanceof TxtySchemaOrgMonetaryAmountError)) { throw new UnitTestError(`例外の型が期待値と違います。${typeof e}`);  }
-            if (e.message !== `引数valueは必須です。`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
+            if (e.message !== `引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。: undefined`) { throw new UnitTestError(`例外メッセージが期待値と違います。`);  }
         }
     }
     #testValueOnly() {
