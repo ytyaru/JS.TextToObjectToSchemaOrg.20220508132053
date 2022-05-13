@@ -394,3 +394,74 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
         return obj
     }
 }
+class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
+    parseFromStore(store) {
+        if (store.length < 2) {throw new TxtySchemaOrgDatasetError(`引数storeは2つ以上の要素をもった配列であるべきです。1つ目が「データセット名    URL    License    creator.name    creator.url    isNotFree」、2つ目が「データセット説明」、3つ目以降が「URL    書式」であることを期待します。`);}
+        const obj = super.generateContextTypeObj('Dataset')
+        console.log(store)
+        obj.name = store[0].name
+        obj.description = store[1].name
+        obj.isAccessibleForFree = true
+        if (0 < store[0].options.length) { obj.url = store[0].options[0] }
+        if (1 < store[0].options.length) { obj.license = store[0].options[1] }
+        if (2 < store[0].options.length) {
+            const person = (3 < store[0].options.length) ? 
+                            new TxtySchemaOrgPerson().parse(store[0].options[2], store[0].options[3]) : 
+                            new TxtySchemaOrgPerson().parse(store[0].options[2])
+            obj.creator = person
+        }
+        if (4 < store[0].options.length) { obj.isAccessibleForFree = false}
+        if (2 < store.length) {
+            obj.distribution = store.slice(2).map(item=>new TxtySchemaOrgDataDownload().parseFromItem(item))
+        }
+        return obj
+    }
+    parseFromStores(stores) {
+        if (store.length < 2) { throw new TxtySchemaOrgPracticeProblemError(`引数storesは2つ以上の要素をもった配列であるべきです。1つ目が名前、2つ目以降が問題とその回答であることを期待します。問題と回答は1つ目が問題文、2つ目以降が回答文です。回答文は「{成否}{問題文}    {コメント}」の書式です。成否と問題文は必須で、コメントは任意です。成否は「○⭕」「☓❌」「☑☐」で指定してください。`); }
+        const obj = this.#generate(stores[0][0].name)
+        for (const store of stores.slice(1)) {
+            
+        }
+        stores.map(store=>this.parseFromStore(store))
+        return obj
+    }
+    #generate(name) {
+        const obj = super.generateContextTypeObj('Quiz')
+        obj.about = super.generateTypeObj('Thing')
+        obj.about = name
+        obj.hasPart = []
+        obj.learningResourceType = 'Practice problem'
+        return obj
+    }
+    #generateQuestion(store) {
+        const question = super.generateTypeObj('Question')
+        question.text = store[0].name
+        question.acceptedAnswer = []
+        question.suggestedAnswer = []
+        const answers = store.slice(1).map(item=>this.#makeAnswerData(item))
+        for (const answer of answers) {
+            if (answer.isAccept) { question.acceptedAnswer.push(this.#generateAnswer(answer)) }
+            else { question.suggestedAnswer.push(this.#generateAnswer(answer)) }
+        }
+        question.eduQuestionType = (1 < (answers.reduce((prev, item) => {return prev + (item.isAccept ? 1 : 0)}, 0))) ? 'Checkbox' : 'Multiple choice'
+        return question
+    }
+    #makeAnswerData(item) { return {
+        isAccept: this.#getIsAccept(item), 
+        text: item.name.slice(1), 
+        comment: (0 < item.options.length) ? item.options[0] : ''
+    }}
+    #getIsAccept(item) {
+        if (['⭕','○','☑'].some(c=>c===item.name[0])) { return true }
+        if (['❌','☓','☐'].some(c=>c===item.name[0])) { return false }
+        throw new TxtySchemaOrgPracticeProblemError(`回答itemは最初の文字が「⭕」「○」「☑」「❌」「☓」「☐」のいずれかであるべきです。前者3つが正解、後者3つが間違いを表します。`)
+    }
+    #generateAnswer(answer) {
+        const obj = super.generateTypeObj('Answer')
+        obj.text = answer.text
+        if (answer.comment) {
+            obj.comment = super.generateTypeObj('Comment')
+            obj.comment.text = answer.comment
+        }
+    }
+}
