@@ -332,37 +332,45 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
 }
 class TxtySchemaOrgDataDownload extends TxtySchemaOrgParser {
     parse(url, format=null) { 
-        const obj = this.generateTypeObj('DataDownload')
+        const obj = super.generateTypeObj('DataDownload')
         obj.contentUrl = url
         if (format) {obj.encodingFormat = format}
         else {
             const ext = this.#getFormatFromUrl(url)
-            if (ext) { obj.encodingFormat = strs[-1] }
+            console.log(ext)
+            if (ext) { obj.encodingFormat = ext }
         }
         return obj
     }
     parseFromItem(item) {
-        const obj = this.generateTypeObj('DataDownload')
+        const obj = super.generateTypeObj('DataDownload')
         obj.contentUrl = item.name
         if (0 < item.options.length) {
             obj.encodingFormat = item.options[0]
         } else { // URLのファイル名から拡張子を取得し、それを書式名にセットする
             const ext = this.#getFormatFromUrl(item.name)
-            if (ext) { obj.encodingFormat = strs[-1] }
+            console.log(ext)
+            if (ext) { obj.encodingFormat = ext }
         }
         return obj
     }
     #getFormatFromUrl(url) {
-        const filename = new URL(url).pathname.split('/')[-1]
+        console.log(new URL(url))
+        const filename = new URL(url).pathname.split('/').slice(-1)[0]
+        console.log(new URL(url).pathname)
+        console.log(new URL(url).pathname.split('/'))
+        console.log(new URL(url).pathname.split('/').slice(-1)[0])
+        console.log(filename)
         const strs = filename.split('.')
-        if (1 < strs.length) { return strs[-1] }
+        console.log(strs)
+        if (1 < strs.length) { return strs.slice(-1)[0] }
         return ''
     }
 }
 class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
     parseFromItem(item) {
         if (item.options.length < 2) {throw new TxtySchemaOrgDatasetError(`引数itemは1つ以上のoptions要素をもった配列であるべきです。1つ目が「データセット説明」、2つ目以降が「ダウンロードURL」であることを期待します。`);}
-        const obj = this.generateTypeObj('DataDownload')
+        const obj = super.generateTypeObj('DataDownload')
         obj.name = item.name
         obj.description = item.options[0].name
         if (2 < item.options.length) {
@@ -374,7 +382,7 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
     }
     parseFromStore(store) {
         if (store.length < 2) {throw new TxtySchemaOrgDatasetError(`引数storeは2つ以上の要素をもった配列であるべきです。1つ目が「データセット名    URL    License    creator.name    creator.url    isNotFree」、2つ目が「データセット説明」、3つ目以降が「URL    書式」であることを期待します。`);}
-        const obj = this.generateTypeObj('DataDownload')
+        const obj = super.generateTypeObj('DataDownload')
         obj.name = store[0].name
         obj.description = store[1].name
         obj.isAccessibleForFree = true
