@@ -291,6 +291,7 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     }
     #parseHowToStepsFromStore(store) { return store.map(item=>this.#parseHowToStepTextFromItem(item)) } // 1層
     #parseHowToStepsFromTree(tree) { // 2,3層
+        console.log('TREEEEEEEEEEEEEEEEE', tree)
         const steps = []
         for (const node of tree.nodes) {
             const maxDepth = this.#calcDepth(node)
