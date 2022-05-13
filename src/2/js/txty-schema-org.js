@@ -337,7 +337,6 @@ class TxtySchemaOrgDataDownload extends TxtySchemaOrgParser {
         if (format) {obj.encodingFormat = format}
         else {
             const ext = this.#getFormatFromUrl(url)
-            console.log(ext)
             if (ext) { obj.encodingFormat = ext }
         }
         return obj
@@ -349,20 +348,13 @@ class TxtySchemaOrgDataDownload extends TxtySchemaOrgParser {
             obj.encodingFormat = item.options[0]
         } else { // URLのファイル名から拡張子を取得し、それを書式名にセットする
             const ext = this.#getFormatFromUrl(item.name)
-            console.log(ext)
             if (ext) { obj.encodingFormat = ext }
         }
         return obj
     }
     #getFormatFromUrl(url) {
-        console.log(new URL(url))
         const filename = new URL(url).pathname.split('/').slice(-1)[0]
-        console.log(new URL(url).pathname)
-        console.log(new URL(url).pathname.split('/'))
-        console.log(new URL(url).pathname.split('/').slice(-1)[0])
-        console.log(filename)
         const strs = filename.split('.')
-        console.log(strs)
         if (1 < strs.length) { return strs.slice(-1)[0] }
         return ''
     }
