@@ -14,6 +14,10 @@ class TestTxtySchemaOrgDataset {
         this.#testParseStoreOption3()
         this.#testParseStoreOption4()
         this.#testParseStoreOption5()
+
+        this.#testParseStoreUrl1()
+        this.#testParseStoreUrlFormat1()
+        this.#testParseStoreUrlFormat3()
     }
     #testParseItemNameOnly() {
         const errorType = TxtySchemaOrgDatasetError
@@ -248,5 +252,106 @@ class TestTxtySchemaOrgDataset {
         console.assert(authorUrl === actual.creator.url)
         console.assert(false === actual.isAccessibleForFree)
         console.assert(!actual.hasOwnProperty('distribution'))
+    }
+    #testParseStoreUrl1() {
+        const name = `データセット名`
+        const description = `データセットの説明文。`
+        const distri = [{url:'https://example.com/dataset.csv'}]
+        const url = `https://example.com/dataset.html`
+        const license = `https://example.com/license.html`
+        const authorName = `著者名`
+        const authorUrl = `https://example.com/author.html`
+        const isNotFree = `1`
+        const txt = `${name}    ${url}    ${license}    ${authorName}    ${authorUrl}    ${isNotFree}
+${description}
+${distri[0].url}`
+        console.log(txt)
+        const actual = new TxtySchemaOrgDataset().parseFromStore(Txty.store(txt))
+        console.log(actual)
+        console.assert('https://schema.org' === actual['@context'])
+        console.assert('Dataset' === actual['@type'])
+        console.assert(name === actual.name)
+        console.assert(description === actual.description)
+        console.assert(url === actual.url)
+        console.assert(license === actual.license)
+        console.assert('Person' === actual.creator['@type'])
+        console.assert(authorName === actual.creator.name)
+        console.assert(authorUrl === actual.creator.url)
+        console.assert(false === actual.isAccessibleForFree)
+        console.assert(actual.hasOwnProperty('distribution'))
+        console.assert(Array.isArray(actual.distribution))
+        console.assert(1 === actual.distribution.length)
+        console.assert(distri[0].url === actual.distribution[0].contentUrl)
+        console.assert('csv' === actual.distribution[0].encodingFormat)
+    }
+    #testParseStoreUrlFormat1() {
+        const name = `データセット名`
+        const description = `データセットの説明文。`
+        const distri = [{url:'https://example.com/dataset.csv', format:'CSV'}]
+        const url = `https://example.com/dataset.html`
+        const license = `https://example.com/license.html`
+        const authorName = `著者名`
+        const authorUrl = `https://example.com/author.html`
+        const isNotFree = `1`
+        const txt = `${name}    ${url}    ${license}    ${authorName}    ${authorUrl}    ${isNotFree}
+${description}
+${distri[0].url}    ${distri[0].format}`
+        console.log(txt)
+        const actual = new TxtySchemaOrgDataset().parseFromStore(Txty.store(txt))
+        console.log(actual)
+        console.assert('https://schema.org' === actual['@context'])
+        console.assert('Dataset' === actual['@type'])
+        console.assert(name === actual.name)
+        console.assert(description === actual.description)
+        console.assert(url === actual.url)
+        console.assert(license === actual.license)
+        console.assert('Person' === actual.creator['@type'])
+        console.assert(authorName === actual.creator.name)
+        console.assert(authorUrl === actual.creator.url)
+        console.assert(false === actual.isAccessibleForFree)
+        console.assert(actual.hasOwnProperty('distribution'))
+        console.assert(Array.isArray(actual.distribution))
+        console.assert(1 === actual.distribution.length)
+        console.assert(distri[0].url === actual.distribution[0].contentUrl)
+        console.assert(distri[0].format === actual.distribution[0].encodingFormat)
+    }
+    #testParseStoreUrlFormat3() {
+        const name = `データセット名`
+        const description = `データセットの説明文。`
+        const distri = [{url:'https://example.com/dataset.csv', format:'CSV'},
+                        {url:'https://example.com/dataset.xml'},
+                        {url:'https://example.com/dataset.json', format:'JSON'}]
+        const url = `https://example.com/dataset.html`
+        const license = `https://example.com/license.html`
+        const authorName = `著者名`
+        const authorUrl = `https://example.com/author.html`
+        const isNotFree = `1`
+        const txt = `${name}    ${url}    ${license}    ${authorName}    ${authorUrl}    ${isNotFree}
+${description}
+${distri[0].url}    ${distri[0].format}
+${distri[1].url}
+${distri[2].url}    ${distri[2].format}`
+        console.log(txt)
+        const actual = new TxtySchemaOrgDataset().parseFromStore(Txty.store(txt))
+        console.log(actual)
+        console.assert('https://schema.org' === actual['@context'])
+        console.assert('Dataset' === actual['@type'])
+        console.assert(name === actual.name)
+        console.assert(description === actual.description)
+        console.assert(url === actual.url)
+        console.assert(license === actual.license)
+        console.assert('Person' === actual.creator['@type'])
+        console.assert(authorName === actual.creator.name)
+        console.assert(authorUrl === actual.creator.url)
+        console.assert(false === actual.isAccessibleForFree)
+        console.assert(actual.hasOwnProperty('distribution'))
+        console.assert(Array.isArray(actual.distribution))
+        console.assert(3 === actual.distribution.length)
+        console.assert(distri[0].url === actual.distribution[0].contentUrl)
+        console.assert(distri[0].format === actual.distribution[0].encodingFormat)
+        console.assert(distri[1].url === actual.distribution[1].contentUrl)
+        console.assert('xml' === actual.distribution[1].encodingFormat)
+        console.assert(distri[2].url === actual.distribution[2].contentUrl)
+        console.assert(distri[2].format === actual.distribution[2].encodingFormat)
     }
 }

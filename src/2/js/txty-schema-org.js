@@ -389,8 +389,6 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
         }
         if (4 < store[0].options.length) { obj.isAccessibleForFree = false}
         if (2 < store.length) {
-//            const parser = new TxtySchemaOrgDataDownload().parseFromItem
-//            obj.distribution = store.slice(2).map(item=>parser(item))
             obj.distribution = store.slice(2).map(item=>new TxtySchemaOrgDataDownload().parseFromItem(item))
         }
         return obj
