@@ -5,6 +5,27 @@
 
 　[schema.org][]によりHTMLのメタデータを定義する型が定義されている。[Googleのschema.org][]はそのごく一部を使って、Google検索結果をリッチに表示する。このライブラリはそのためのデータをJSON-LD形式テキストで生成する。
 
+phase|完了|対象
+-----|----|----
+1|o|Article（Person）
+1|o|BreadcrumbList（ListItem）
+1|o|FAQPage
+1|o|HowTo, HowToSupply, HowToTool, HowToSection, HowToStep, HowToDirection, HowToTip
+1|o|Dataset
+1|o|練習問題（Quiz,Question,AlignmentObject,Comment,Answer）
+1|o|共通（MonetaryAmount,DataDownload,ImageObject,VideoObject）
+2||ソフトウェア アプリ（ベータ版）
+2||Recipe（Person,NutritionInformation,HowToStep,AggregateRating,VideoObject,InteractionCounter,WatchAction）
+2||カルーセル（Recipe,ItemList,ListItem）
+2||FactCheck(ClaimReview,Claim,OpinionNewsArticle,Rating,Organization)
+2||数学の解法（MathSolver,LearningResource,SolveMathAction）
+2||Book
+2||Speakable
+2||定期購入とペイウォール コンテンツ
+2||サイトリンク検索ボックス
+2||Movie
+2||クチコミ抜粋
+
 ## 対象
 
 * Article（Person）
@@ -15,7 +36,7 @@
 * 練習問題（Quiz,Question,AlignmentObject,Comment,Answer）
 * 共通
     * MonetaryAmount
-    * Download
+    * DataDownload
     * ImageObject
     * VideoObject
     * AudioObject

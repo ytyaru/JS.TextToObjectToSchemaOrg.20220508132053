@@ -115,7 +115,7 @@ class TxtySchemaOrgMonetaryAmount extends TxtySchemaOrgParser {
     parse(text, currency='JPY') {
         let value = null
         // 末尾3字が非数ならcurrency付きと判定する
-        if (('string' === typeof text || text instanceof String) && isNaN(text.trim().slice(-3))) {
+        if (StringType.isString(text) && isNaN(text.trim().slice(-3))) {
             value = Number(text.replace(',', ''))
             if (isNaN(text.trim().replace(',', '').slice(0, -3))) {
                 throw new TxtySchemaOrgMonetaryAmountError(`引数textは数値か、または数値化できるテキストであるべきです。もし通貨単位も同時に指定するなら末尾にJPY,EUR,USDなどを指定できます。: ${text}`)
@@ -251,7 +251,7 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
                     value = new TxtySchemaOrgMonetaryAmount().parse(item.name)
                     obj.estimatedCost = value
                 } catch (e) {
-                    if (['http://', 'https://'].some(protocol=>item.name.startsWith(protocol))) {
+                    if (StringType.isUrl(item.name)) {
                         obj.image = item.name
                         if (0 < item.options.length) {
                             obj.video = new TxtySchemaOrgVideoObject().parse(item.options[0], obj.name, obj.name, obj.image);
@@ -331,6 +331,8 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         if (0 < item.options.length) { step.image = item.options[0] }
         if (1 < item.options.length) {
             if (item.options.length < 3) { throw new TxtySchemaOrgHowToError(`引数itemのoptionで2個目があるとき、3個目が必要です。3個目は 開始..終了 の書式で整数値をセットしてください。: ${item.options.length}`); }
+//            console.log(StringType.isRange(item.options[2]));
+//            let [startOffsets, endOffsets] = StringType.isRange(item.options[2]);
             let [startOffsets, endOffsets] = item.options[2].split('..').map(v=>Number(v))
             if (!startOffsets || !endOffsets) { throw new TxtySchemaOrgHowToError(`引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: ${item.options[2]}`);}
             step.video = new TxtySchemaOrgClip().parse(item.name, item.options[1], startOffsets, endOffsets)
@@ -461,3 +463,98 @@ class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
         return obj
     }
 }
+// 汎用的で独自のテキスト値を型として識別する。
+//   対象外：
+//     独自型にすべき：Currency, HowToTip
+//     別クラスにすべき：MIME type, ファイル拡張子(画像,音声,動画,...)
+class StringType { 
+    static isString(value) { return ('string' === typeof value || value instanceof String) }
+    static isUrl(value) {
+        if (value instanceof URL) { return true }
+        if (!this.isString(value)) { return false }
+        return ['http://','https://'].some(protocol=>value.startsWith(protocol))
+    }
+    static isFraction(value) {
+        if (!this.isString(value)) { return false }
+        if (!value.trim().find('/')) { return false }
+        const values = value.trim().split('/')
+        if (2 !== values.length) { return false }
+        if (isNaN(values[0])) { return false }
+        if (isNaN(values[1])) { return false }
+        return true
+    }
+    static isPercentage(value) {
+        if (!this.isString(value)) { return false }
+        if (!value.trim().endsWith('%')) { return false }
+        return Number(value.trim().slice(0, -1))
+    }
+    static isSignedInt(value) { // 符号付き整数
+        if (this.isString(value)) {
+            const regex = RegExp(/^[-]?([1-9]\d*|0)$/);
+            return regex.test(value.trim())
+        } else { return !isNaN(value) }
+    }
+    static isUnsignedInt(value) { // 符号無し整数
+        if (this.isString(value)) {
+            const regex = RegExp(/^([1-9]\d*|0)$/);
+            return regex.test(value.trim())
+        } else { return !isNaN(value) }
+    }
+    /*
+    static isRange(value) {
+        if (!this.isString(value)) { return false }
+        const DELIMITER = '..'
+        if (-1 === value.indexOf(DELIMITER)) { return false }
+        const values = value.split(DELIMITER)
+        if (2 !== values.length) { return false }
+        if (!values.every(v=>this.isSignedInt(v))) { return false }
+        return values.map(v=>Number(v))
+        //return true
+    }
+    static isHowToTip(value) {
+        const KEYWORD = 'TIP:'
+        if (!value.trim().toUpperCase().startsWith(KEYWORD)) { return null }
+        return value.trim().slice(KEYWORD.length)
+    }
+    */
+    //static isHowToTip(value) { return value.trim().toUpperCase().startsWith('TIP:') }
+    static isRatingValue(value) {
+        if (StringType.isFraction(value)) { return true }
+        if (StringType.isPercentage(value)) { return true }
+        if (StringType.isString(value)) { return StringType.isUnsignedInt(value) }
+        else if (!isNaN(value)) { return true }
+        return false
+    }
+}
+class TxtySchemaOrgAggregateRating extends TxtySchemaOrgParser {
+    parse(txt) {
+        
+        
+    }
+    parseFromItem(item) {
+    }
+}
+class TxtySchemaOrgReview extends TxtySchemaOrgParser {
+    parse(txt) {}
+    parseFromItem(item) {
+        if (!StringType.isRatingValue(item.name)) { throw new TxtySchemaOrgReviewError(`引数itemのnameはratingValueであるべきです。すなわち数字(1,2,3,4,5)、分数(6/10)、パーセンテージ(60%)のいずれかであることを期待します。: ${item.name}`) }
+        const review = super.generateTypeObj('Review')
+        if (item.options.length < 1) { throw new TxtySchemaOrgReviewError(`引数itemのoptionsは少なくとも1つ以上あるべきです。「著者名    著者URL    レビュー名    レビュー内容」であることを期待します。: ${item.name}`) }
+        if (99 < item.options[0].length) { throw new TxtySchemaOrgReviewError(`引数itemのoptions[0]は著者名ですが、100字未満（99字以内）であるべきです。https://developers.google.com/search/docs/advanced/structured-data/review-snippet?hl=ja#review-properties`) }
+        review.author = new TxtySchemaOrgPerson(item.options[0])
+        let index = 1
+        if (1 < item.options.length) {
+            if (StringType.isUrl(item.options[1])) {
+                review.author.url = item.options[1]
+                index++
+            } 
+        }
+        if (i < item.options.length) { review.name = item.options[i]; i++; }
+        if (i < item.options.length) { review.reviewBody = item.options[i]; i++; }
+        return review
+    }
+}
+class TxtySchemaOrgRating extends TxtySchemaOrgParser {
+    parse(txt) {}
+}
+
