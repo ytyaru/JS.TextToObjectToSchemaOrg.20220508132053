@@ -224,7 +224,6 @@ class TxtySchemaOrgClip extends TxtySchemaOrgParser {
 }
 class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     parseFromComposite(compo) {
-        console.log(compo)
         if (!Array.isArray(compo)) { throw new TxtySchemaOrgHowToError(`引数compoは配列であるべきです。Txty.composite()の戻り値を期待します。`); }
         if (compo.length < 2 || 4 < compo.length) { throw new TxtySchemaOrgHowToError(`引数compoは配列であり、その要素数は2,3,4のいずれかであるべきです。`); }
         return {...this.generateContextTypeObj('HowTo'), ...this.#parseHowToFromStore(compo[0]), ...this.#parseOptions(compo)}
@@ -249,13 +248,10 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
             }
             catch (e) {
                 try {
-                    console.log(item.name)
                     value = new TxtySchemaOrgMonetaryAmount().parse(item.name)
-                    console.log(value)
                     obj.estimatedCost = value
                 } catch (e) {
                     if (['http://', 'https://'].some(protocol=>item.name.startsWith(protocol))) {
-                        console.log(item.name)
                         obj.image = item.name
                         if (0 < item.options.length) {
                             obj.video = new TxtySchemaOrgVideoObject().parse(item.options[0], obj.name, obj.name, obj.image);
@@ -278,24 +274,16 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
     }
     #parseHowToSuppliesFromStore(store) { return this.#parseHowToItemsFromStore(store, 'HowToSupply') }
     #parseHowToToolsFromStore(store) { return this.#parseHowToItemsFromStore(store, 'HowToTool') }
-    #parseHowToStepTextFromItem(item) {
-        const step = super.generateTypeObj('HowToStep')
-        step.text = item.name
-        if (0 < item.options.length) { step.image = item.options[0] }
-        if (1 < item.options.length) {
-            if (item.options.length < 3) { throw new TxtySchemaOrgHowToError(`引数itemのoptionで2個目があるとき、3,4個目が必要です。: ${item.options.length}`); }
-            let startOffets = Number(item.options[2])
-            step.video = new TxtySchemaOrgClip().parse(item.name, item.options[1], )
-        }
-        return step
-    }
-    #parseHowToStepsFromStore(store) { return store.map(item=>this.#parseHowToStepTextFromItem(item)) } // 1層
-    #parseHowToStepsFromTree(tree) { // 2,3層
-        console.log('TREEEEEEEEEEEEEEEEE', tree)
+    #parseHowToStepTextFromItem(item) { return {
+            '@type': 'HowToStep',
+            text: item.name,
+            ...this.#parseHowToStepOptionsFromItem(item),
+    }}
+    #parseHowToStepsFromStore(store) { return store.map(item=>this.#parseHowToStepTextFromItem(item)) } // すべて1層
+    #parseHowToStepsFromTree(tree) { // 1,2,3層
         const steps = []
         for (const node of tree.nodes) {
             const maxDepth = this.#calcDepth(node)
-            console.log(maxDepth)
             if (1 === maxDepth) { steps.push(this.#parseHowToStepTextFromItem(node.content)) }
             else if (2 === maxDepth) { steps.push(this.#parseHowToStepHasListFromNode(node)) }
             else if (3 === maxDepth) { steps.push(this.#parseHowToSectionFromNode(node)) }
@@ -313,28 +301,39 @@ class TxtySchemaOrgHowTo extends TxtySchemaOrgParser {
         return depth
     }
     #parseHowToSectionFromNode(node) {
-        return {
-            ...this.generateTypeObj('HowToSection'), 
-            name: node.content.name, 
-            itemListElement: node.nodes.map(child=>this.#parseHowToStepHasListFromNode(child)),
+        const section = this.generateTypeObj('HowToSection')
+        section.name = node.content.name
+        section.itemListElement = []
+        for (const child of node.nodes) {
+            const maxDepth = this.#calcDepth(child)
+            if (1 === maxDepth) {section.itemListElement.push(this.#parseHowToStepTextFromItem(child.content));}
+            else if (2 === maxDepth) {section.itemListElement.push(this.#parseHowToStepHasListFromNode(child));}
         }
+        return section
     }
     // 不使用
     //#parseHowToStepNameTextFromItem(node) { return {...super.generateTypeObj('HowToStep'), name: node.content.name, text: ""}; }
     #parseHowToStepHasListFromNode(node) {
-        const step = {...this.generateTypeObj('HowToStep'), name: node.content.name, itemListElement: []}
-        if (0 < node.content.options.length) { step.image = node.content.options[0] }
-        if (1 < node.content.options.length) {
-            if (node.content.options.length < 3) { throw new TxtySchemaOrgHowToError(`引数itemのoptionで2個目があるとき、3個目が必要です。3個目は 開始..終了 の書式で整数値をセットしてください。: ${node.content.options.length}`); }
-            let [startOffsets, endOffsets] = node.content.options[2].split('..').map(v=>Number(v))
-            if (!startOffsets || !endOffsets) { throw new TxtySchemaOrgHowToError(`引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: ${node.content.options[2]}`);}
-            step.video = new TxtySchemaOrgClip().parse(node.content.name, node.content.options[1], startOffsets, endOffsets)
-        }
+        const step = {...this.generateTypeObj('HowToStep'), 
+                        name: node.content.name, 
+                        itemListElement: [], 
+                        ...this.#parseHowToStepOptionsFromItem(node.content)}
         for (const child of node.nodes) {
             const direction = (child.content.name.toUpperCase().startsWith('TIP:')) ? 
                                 this.#parseHowToTipFromItem(child.content) : 
                                 this.#parseHowToDirectionFromItem(child.content);
             step.itemListElement.push(direction)
+        }
+        return step
+    }
+    #parseHowToStepOptionsFromItem(item) {
+        const step = {}
+        if (0 < item.options.length) { step.image = item.options[0] }
+        if (1 < item.options.length) {
+            if (item.options.length < 3) { throw new TxtySchemaOrgHowToError(`引数itemのoptionで2個目があるとき、3個目が必要です。3個目は 開始..終了 の書式で整数値をセットしてください。: ${item.options.length}`); }
+            let [startOffsets, endOffsets] = item.options[2].split('..').map(v=>Number(v))
+            if (!startOffsets || !endOffsets) { throw new TxtySchemaOrgHowToError(`引数itemのoption[2]は 開始..終了 の書式で整数値をセットしてください。: ${item.options[2]}`);}
+            step.video = new TxtySchemaOrgClip().parse(item.name, item.options[1], startOffsets, endOffsets)
         }
         return step
     }

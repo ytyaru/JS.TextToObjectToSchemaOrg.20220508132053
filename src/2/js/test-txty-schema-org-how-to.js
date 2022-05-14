@@ -763,7 +763,7 @@ https://image.png    https://video.mp4
         console.assert('あれをあれする。' === actual.step[0].itemListElement[0].itemListElement[0].text)
 
         console.assert('HowToStep' === actual.step[1].itemListElement[0]['@type'])
-        console.assert('手順1' === actual.step[1].itemListElement[0].name)
+        console.assert('手順1' === actual.step[1].itemListElement[0].text)
         console.assert('https://step2.png' === actual.step[1].itemListElement[0].image)
         console.assert('Clip' === actual.step[1].itemListElement[0].video['@type'])
         console.assert('手順1' === actual.step[1].itemListElement[0].video.name)
