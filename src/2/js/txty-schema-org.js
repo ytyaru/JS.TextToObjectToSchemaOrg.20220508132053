@@ -371,8 +371,6 @@ class TxtySchemaOrgDataDownload extends TxtySchemaOrgParser {
 }
 class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
     parseFromItem(item) {
-        console.log(item.options)
-        console.log(item.options.length)
         if (item.options.length < 1) {throw new TxtySchemaOrgDatasetError(`引数itemは1つ以上のoptions要素をもった配列であるべきです。1つ目が「データセット説明」、2つ目以降が「ダウンロードURL」であることを期待します。`);}
         const obj = super.generateContextTypeObj('Dataset')
         obj.name = item.name
@@ -386,7 +384,6 @@ class TxtySchemaOrgDataset extends TxtySchemaOrgParser {
     parseFromStore(store) {
         if (store.length < 2) {throw new TxtySchemaOrgDatasetError(`引数storeは2つ以上の要素をもった配列であるべきです。1つ目が「データセット名    URL    License    creator.name    creator.url    isNotFree」、2つ目が「データセット説明」、3つ目以降が「URL    書式」であることを期待します。`);}
         const obj = super.generateContextTypeObj('Dataset')
-        console.log(store)
         obj.name = store[0].name
         obj.description = store[1].name
         obj.isAccessibleForFree = true
@@ -432,13 +429,11 @@ class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
         question.acceptedAnswer = []
         question.suggestedAnswer = []
         const answers = store.slice(1).map(item=>this.#makeAnswerData(item))
-        console.log(answers )
         for (const answer of answers) {
             if (answer.isAccept) { question.acceptedAnswer.push(this.#generateAnswer(answer)) }
             else { question.suggestedAnswer.push(this.#generateAnswer(answer)) }
         }
         question.eduQuestionType = this.#getEduQuestionType(answers)
-//        question.eduQuestionType = (1 < (answers.reduce((prev, item) => {return prev + (item.isAccept ? 1 : 0)}, 0))) ? 'Checkbox' : 'Multiple choice'
         return question
     }
     #makeAnswerData(item) { return {
