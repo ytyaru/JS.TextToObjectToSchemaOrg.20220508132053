@@ -6,7 +6,7 @@ class TxtySchemaOrgImageObjectError extends ExtensibleCustomError {}
 class TxtySchemaOrgHowToError extends ExtensibleCustomError {}
 class TxtySchemaOrgDatasetError extends ExtensibleCustomError {}
 class TxtySchemaOrgPracticeProblemError extends ExtensibleCustomError {}
-class TxtySchemaOrgRatingValueError extends ExtensibleCustomError {}
+class TxtySchemaOrgRatingError extends ExtensibleCustomError {}
 
 class TxtySchemaOrg {
     static Article(txt, indent=null) { return new TxtySchemaOrgArticle().parse(txt, indent) ; }
@@ -465,8 +465,9 @@ class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
         return obj
     }
 }
-class Rating extends TxtySchemaOrgParser { // 整数、実数、分数、百分率
-    constructor(text, min=1, max=5) {
+class TxtySchemaOrgRating extends TxtySchemaOrgParser { // 整数、実数、分数、百分率
+    constructor(min=1, max=5) {
+        super()
         this.TYPES = {
             INVALID: 0,
             INT: 1,
@@ -475,12 +476,15 @@ class Rating extends TxtySchemaOrgParser { // 整数、実数、分数、百分�
             PERCENTAGE: 4,
         }
         this.value = 0
-        this.Text = text
+        this.text = null
         this.min = min
         this.max = max
-        this.#validMinMaxValue()
+        this.#validMinMax()
     }
-    parse(text, published=null) {
+    parse(text=null, published=null) {
+        if (text) { this.Text = text }
+        if (!this.Text) { throw new TxtySchemaOrgRatingError(`引数textを指定してください。`) }
+        this.#validValue()
         const obj = super.generateTypeObj('Rating')
         obj.ratingValue = this.value
         obj.bestRating = this.Max
@@ -491,8 +495,9 @@ class Rating extends TxtySchemaOrgParser { // 整数、実数、分数、百分�
     get Max() { return this.max }
     get Min() { return this.min }
     get Value() { return this.value } // min〜maxの間の数
-    get Text() { return this.value }
+    get Text() { return this.text }
     set Text(text) {
+        this.text = `${text}`
         if (!isNaN(text)) {
             if (parseInt(text)) { this.value = text; return; }
             if (parseFloat(text)) { this.value = text; return; }
@@ -510,14 +515,16 @@ class Rating extends TxtySchemaOrgParser { // 整数、実数、分数、百分�
                 this.value = this.#calcValueFromRate(Number(text.trim().slice(0, -1)) / 100)
                 break
             default:
-                throw new TxtySchemaOrgRatingValueError(`引数textは整数、実数、分数、パーセンテージ、いずれかの形式であるべきです。たとえば  4  4.2  6/10  64%  など。: ${text}`)
+                throw new TxtySchemaOrgRatingError(`引数textは整数、実数、分数、パーセンテージ、いずれかの形式であるべきです。たとえば  4  4.2  6/10  64%  など。: ${text}`)
         }
     }
-    #validMinMaxValue() {
-        if (this.Min < 0) { throw new TxtySchemaOrgRatingValueError(`最小値は0以上であるべきです。: ${this.Min}`) }
-        if (this.Max < 0) { throw new TxtySchemaOrgRatingValueError(`最大値は0以上であるべきです。: ${this.Max}`) }
-        if (this.Value < this.Min) { throw new TxtySchemaOrgRatingValueError(`値は最小値以上であるべきです。値:${this.Value}, 最小値:${this.Min}`) }
-        if (this.Max < this.Value) { throw new TxtySchemaOrgRatingValueError(`値は最大値以下であるべきです。値:${this.Value}, 最大値:${this.Max}`) }
+    #validMinMax() {
+        if (this.Min < 0) { throw new TxtySchemaOrgRatingError(`最小値は0以上であるべきです。: ${this.Min}`) }
+        if (this.Max < 0) { throw new TxtySchemaOrgRatingError(`最大値は0以上であるべきです。: ${this.Max}`) }
+    }
+    #validValue() {
+        if (this.Value < this.Min) { throw new TxtySchemaOrgRatingError(`値は最小値以上であるべきです。値:${this.Value}, 最小値:${this.Min}`) }
+        if (this.Max < this.Value) { throw new TxtySchemaOrgRatingError(`値は最大値以下であるべきです。値:${this.Value}, 最大値:${this.Max}`) }
     }
     #calcValueFromRate(rate) { return (this.Min + this.Max) / rate }
     #isRatingValue(text) {
@@ -532,7 +539,7 @@ class Rating extends TxtySchemaOrgParser { // 整数、実数、分数、百分�
     }
     #isFraction(text) {
         if (!StringType.isString(text)) { return false }
-        if (!text.trim().find('/')) { return false }
+        if (-1 === text.trim().indexOf('/')) { return false }
         const texts = text.trim().split('/')
         if (2 !== texts.length) { return false }
         if (isNaN(texts[0])) { return false }
@@ -654,7 +661,8 @@ class TxtySchemaOrgReview extends TxtySchemaOrgParser {
         return review
     }
 }
+/*
 class TxtySchemaOrgRating extends TxtySchemaOrgParser {
     parse(txt) {}
 }
-
+*/
