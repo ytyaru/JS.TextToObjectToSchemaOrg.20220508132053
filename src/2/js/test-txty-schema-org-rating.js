@@ -8,18 +8,12 @@ class TestTxtySchemaOrgRating {
         this.#testTooSmallValue()
         this.#testTooBigValue()
         this.#testInt()
-        /*
-        this.#testStoresLack()
-        this.#testStoresLackAnswer0()
-        this.#testStoresLackAnswer1()
-        this.#testStoresOverAnswer7()
-        this.#testInvalidAnswerAcceptChar()
-        this.#testMinimum()
-        this.#testMaxAnswser6()
-        this.#testQuestion3()
-        this.#testMinimumComment()
-        this.#testQuestion3Comment()
-        */
+        this.#testFloat()
+        this.#testIntText()
+        this.#testFloatText()
+        this.#testFractionText()
+        this.#testParcentageText()
+        this.#testChangeMinMax()
     }
     #testBlank() {
         const txt = ``
@@ -127,5 +121,93 @@ class TestTxtySchemaOrgRating {
         console.assert(max === actual.bestRating)
         console.assert(min === actual.worstRating)
         console.assert(value === actual.ratingValue)
+    }
+    #testFloat() {
+        const min = 1
+        const max = 5
+        const value = 3.5
+        const rating = new TxtySchemaOrgRating(min, max)
+        const actual = rating.parse(value)
+        console.assert(value === rating.Value)
+        console.log(rating.Text, `${value}`)
+        console.assert(`${value}` === rating.Text)
+        console.assert('Rating' === actual['@type'])
+        console.assert(max === actual.bestRating)
+        console.assert(min === actual.worstRating)
+        console.assert(value === actual.ratingValue)
+    }
+    #testIntText() {
+        const min = 1
+        const max = 5
+        const value = `3`
+        const rating = new TxtySchemaOrgRating(min, max)
+        const actual = rating.parse(value)
+        console.log(rating.Value)
+        console.assert(3 == rating.Value)
+        console.assert(parseInt(value) == rating.Value)
+        console.assert(Number(value) == rating.Value)
+        console.log(rating.Text, value)
+        console.assert(value === rating.Text)
+        console.assert('Rating' === actual['@type'])
+        console.assert(max === actual.bestRating)
+        console.assert(min === actual.worstRating)
+        console.assert(value === actual.ratingValue)
+    }
+    #testFloatText() {
+        const min = 1
+        const max = 5
+        const value = `3.5`
+        const rating = new TxtySchemaOrgRating(min, max)
+        const actual = rating.parse(value)
+        console.assert(Number(value) == rating.Value)
+        console.log(rating.Text, value)
+        console.assert(value === rating.Text)
+        console.assert('Rating' === actual['@type'])
+        console.assert(max === actual.bestRating)
+        console.assert(min === actual.worstRating)
+        console.assert(value === actual.ratingValue)
+    }
+    #testFractionText() {
+        const min = 1
+        const max = 5
+        const value = `3/4`
+        const rating = new TxtySchemaOrgRating(min, max)
+        const actual = rating.parse(value)
+        console.log(rating.Value)
+        console.assert((min+max)*(3/4) == rating.Value)
+        console.log(rating.Value, rating.Text, value)
+        console.assert(value === rating.Text)
+        console.assert('Rating' === actual['@type'])
+        console.assert(max === actual.bestRating)
+        console.assert(min === actual.worstRating)
+        console.assert((min+max)*(3/4) == actual.ratingValue)
+    }
+    #testParcentageText() {
+        const min = 1
+        const max = 5
+        const value = `75%`
+        const rating = new TxtySchemaOrgRating(min, max)
+        const actual = rating.parse(value)
+        console.assert((min+max)*(75/100) == rating.Value)
+        console.log(rating.Value, rating.Text, value)
+        console.assert(value === rating.Text)
+        console.assert('Rating' === actual['@type'])
+        console.assert(max === actual.bestRating)
+        console.assert(min === actual.worstRating)
+        console.assert((min+max)*(75/100) === actual.ratingValue)
+    }
+    #testChangeMinMax() {
+        const min = 0
+        const max = 100
+        const value = `88%`
+        const rating = new TxtySchemaOrgRating(min, max)
+        const actual = rating.parse(value)
+        console.assert((min+max)*(88/100) == rating.Value)
+        console.log(rating.Value, rating.Text, value)
+        console.assert(value === rating.Text)
+        console.assert('Rating' === actual['@type'])
+        console.assert(max === actual.bestRating)
+        console.assert(min === actual.worstRating)
+        console.assert((min+max)*(88/100) === actual.ratingValue)
     }
 }

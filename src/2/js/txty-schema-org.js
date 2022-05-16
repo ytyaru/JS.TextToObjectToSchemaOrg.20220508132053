@@ -508,11 +508,13 @@ class TxtySchemaOrgRating extends TxtySchemaOrgParser { // 整数、実数、分
                 this.value = Number(text)
                 break
             case this.TYPES.FRACTION:
-                const values = text.trim().split('/').map(t=>Number(v))
+                const values = text.trim().split('/').map(t=>Number(t))
                 this.value = this.#calcValueFromRate(values[0] / values[1])
+                console.log(this.value, values[0], values[1], values[0] / values[1])
                 break
             case this.TYPES.PERCENTAGE:
                 this.value = this.#calcValueFromRate(Number(text.trim().slice(0, -1)) / 100)
+                console.log(this.value)
                 break
             default:
                 throw new TxtySchemaOrgRatingError(`引数textは整数、実数、分数、パーセンテージ、いずれかの形式であるべきです。たとえば  4  4.2  6/10  64%  など。: ${text}`)
@@ -526,7 +528,7 @@ class TxtySchemaOrgRating extends TxtySchemaOrgParser { // 整数、実数、分
         if (this.Value < this.Min) { throw new TxtySchemaOrgRatingError(`値は最小値以上であるべきです。値:${this.Value}, 最小値:${this.Min}`) }
         if (this.Max < this.Value) { throw new TxtySchemaOrgRatingError(`値は最大値以下であるべきです。値:${this.Value}, 最大値:${this.Max}`) }
     }
-    #calcValueFromRate(rate) { return (this.Min + this.Max) / rate }
+    #calcValueFromRate(rate) { return (this.Min + this.Max) * rate }
     #isRatingValue(text) {
         if (StringType.isString(text)) {
             if (this.#isUnsignedInt(text)) { return this.TYPES.INT }
