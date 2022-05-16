@@ -113,6 +113,34 @@ ratingValue
 }
 ```
 
+### Rating
+
+* https://schema.org/Rating
+    * https://schema.org/AggregateRating
+    * https://schema.org/Review
+
+　Schema.orgにおける`ratingValue`は`[0-9.]`の字を使った整数または実数である。なのにGoogleでは分数や百分率も使えるという。おそらくそれはGoogle側独自の便利機能だろう。
+
+　どのように実装すべきか。Google側にあわせるか、それともschema.org側にあわせるか。できるだけ簡単な実装にしたい。[1-5]のいずれかのみで評価するのが最も簡単だ。もし拡張するなら百分率を使いたい。worstRatingやbestRatingを指定して`[1-5]`の範囲そのものを変えることもできるようにしたい。でも、そこまで細かく設定しても使わなそう。
+
+```javascript
+class RatingValue { // 整数、実数、分数、百分率
+    constructor(text, min=1, max=5) {
+        this.text = text
+        this.value = text
+        this.min = min
+        this.max = max
+    }
+    get Max() { return this.max }
+    get Min() { return this.min }
+    get Text(text) { return this.value }
+    set Text(text) {
+
+    }
+    get Value() { return this.value }
+}
+```
+
 ## Review
 
 必須

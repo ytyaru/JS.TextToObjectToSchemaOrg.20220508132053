@@ -6,6 +6,8 @@ class TxtySchemaOrgImageObjectError extends ExtensibleCustomError {}
 class TxtySchemaOrgHowToError extends ExtensibleCustomError {}
 class TxtySchemaOrgDatasetError extends ExtensibleCustomError {}
 class TxtySchemaOrgPracticeProblemError extends ExtensibleCustomError {}
+class TxtySchemaOrgRatingValueError extends ExtensibleCustomError {}
+
 class TxtySchemaOrg {
     static Article(txt, indent=null) { return new TxtySchemaOrgArticle().parse(txt, indent) ; }
 }
@@ -461,6 +463,104 @@ class TxtySchemaOrgPracticeProblem extends TxtySchemaOrgParser {
             obj.comment.text = answer.comment
         }
         return obj
+    }
+}
+class Rating extends TxtySchemaOrgParser { // 整数、実数、分数、百分率
+    constructor(text, min=1, max=5) {
+        this.TYPES = {
+            INVALID: 0,
+            INT: 1,
+            FROAT: 2,
+            FRACTION: 3,
+            PERCENTAGE: 4,
+        }
+        this.value = 0
+        this.Text = text
+        this.min = min
+        this.max = max
+        this.#validMinMaxValue()
+    }
+    parse(text, published=null) {
+        const obj = super.generateTypeObj('Rating')
+        obj.ratingValue = this.value
+        obj.bestRating = this.Max
+        obj.worstRating = this.Min
+        if (published && Date.parse(published)) { obj.datePublished = published }
+        return obj
+    }
+    get Max() { return this.max }
+    get Min() { return this.min }
+    get Value() { return this.value } // min〜maxの間の数
+    get Text() { return this.value }
+    set Text(text) {
+        if (!isNaN(text)) {
+            if (parseInt(text)) { this.value = text; return; }
+            if (parseFloat(text)) { this.value = text; return; }
+        }
+        switch(this.#isRatingValue(text)) {
+            case this.TYPES.INT:
+            case this.TYPES.FLOAT:
+                this.value = Number(text)
+                break
+            case this.TYPES.FRACTION:
+                const values = text.trim().split('/').map(t=>Number(v))
+                this.value = this.#calcValueFromRate(values[0] / values[1])
+                break
+            case this.TYPES.PERCENTAGE:
+                this.value = this.#calcValueFromRate(Number(text.trim().slice(0, -1)) / 100)
+                break
+            default:
+                throw new TxtySchemaOrgRatingValueError(`引数textは整数、実数、分数、パーセンテージ、いずれかの形式であるべきです。たとえば  4  4.2  6/10  64%  など。: ${text}`)
+        }
+    }
+    #validMinMaxValue() {
+        if (this.Min < 0) { throw new TxtySchemaOrgRatingValueError(`最小値は0以上であるべきです。: ${this.Min}`) }
+        if (this.Max < 0) { throw new TxtySchemaOrgRatingValueError(`最大値は0以上であるべきです。: ${this.Max}`) }
+        if (this.Value < this.Min) { throw new TxtySchemaOrgRatingValueError(`値は最小値以上であるべきです。値:${this.Value}, 最小値:${this.Min}`) }
+        if (this.Max < this.Value) { throw new TxtySchemaOrgRatingValueError(`値は最大値以下であるべきです。値:${this.Value}, 最大値:${this.Max}`) }
+    }
+    #calcValueFromRate(rate) { return (this.Min + this.Max) / rate }
+    #isRatingValue(text) {
+        if (StringType.isString(text)) {
+            if (this.#isUnsignedInt(text)) { return this.TYPES.INT }
+            if (this.#isUnsignedFloat(text)) { return this.TYPES.FLOAT }
+            if (this.#isFraction(text)) { return this.TYPES.FRACTION }
+            if (this.#isPercentage(text)) { return this.TYPES.PERCENTAGE }
+            return this.TYPES.INVALID
+        }
+        return false
+    }
+    #isFraction(text) {
+        if (!StringType.isString(text)) { return false }
+        if (!text.trim().find('/')) { return false }
+        const texts = text.trim().split('/')
+        if (2 !== texts.length) { return false }
+        if (isNaN(texts[0])) { return false }
+        if (isNaN(texts[1])) { return false }
+        return true
+    }
+    #isPercentage(text) {
+        if (!StringType.isString(text)) { return false }
+        if (!text.trim().endsWith('%')) { return false }
+        return Number(text.trim().slice(0, -1))
+    }
+    #isSignedInt(text) { // 符号付き整数
+        if (StringType.isString(text)) {
+            const regex = RegExp(/^[-]?([1-9]\d*|0)$/);
+            return regex.test(text.trim())
+        } else { return !isNaN(text) }
+    }
+    #isUnsignedInt(text) { // 符号無し整数
+        if (StringType.isString(text)) {
+            const regex = RegExp(/^([1-9]\d*|0)$/);
+            return regex.test(text.trim())
+        } else { return !isNaN(text) }
+    }
+    #isUnsignedFloat(text) { // 符号無し実数
+        if (StringType.isString(text)) {
+            const regex = RegExp(/^([1-9]\d*|0)(\.\d+)?$/);
+            return regex.test(text.trim())
+        } else { return !isNaN(text) }
     }
 }
 // 汎用的で独自のテキスト値を型として識別する。
